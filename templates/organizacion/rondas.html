@@ -1,0 +1,67 @@
+{% extends "organizacion/base_org.html" %}
+{% block title %}Rondas{% endblock %}
+
+{% block content %}
+{% with active_tab="rondas" %}{% endwith %}
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-black text-gray-900">Rondas</h1>
+        <div class="flex gap-2">
+            {% if puede_generar %}
+            <form method="post" action="{% url 'org_generar_ronda' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary">+ Generar siguiente ronda</button>
+            </form>
+            {% endif %}
+            {% if puede_generar_eliminatorias %}
+            <form method="post" action="{% url 'org_generar_octavos' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-warning">Generar octavos de final</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if not puede_generar %}
+    <div class="card !bg-amber-50 !border-amber-200 border-2">
+        <p class="text-amber-700 text-sm font-medium">Hay una ronda en curso. Completa todas las partidas y marca la ronda como completada antes de generar la siguiente.</p>
+    </div>
+    {% endif %}
+
+    <div class="space-y-3">
+    {% for ronda in rondas %}
+    <div class="card">
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 class="font-bold">{{ ronda }}</h3>
+                <div class="flex items-center gap-2 mt-1">
+                    <span class="badge {% if ronda.estado == 'completada' %}badge-green{% elif ronda.estado == 'en_curso' %}badge-yellow{% else %}badge-gray{% endif %}">
+                        {{ ronda.get_estado_display }}
+                    </span>
+                    <span class="text-xs text-gray-400">{{ ronda.partidas.count }} partidas</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                {% if ronda.estado == "en_curso" %}
+                <form method="post" action="{% url 'org_completar_ronda' ronda.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-warning text-xs"
+                            onclick="return confirm('¿Seguro que quieres completar esta ronda? Las partidas no finalizadas quedaran como estan.')">
+                        Completar ronda
+                    </button>
+                </form>
+                {% endif %}
+                <a href="{% url 'org_ronda_detalle' ronda.pk %}" class="btn btn-secondary text-xs">Ver detalle</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="card text-center py-10">
+        <p class="text-4xl mb-3">&#127183;</p>
+        <p class="text-gray-400 font-medium">No hay rondas creadas</p>
+        <p class="text-gray-300 text-sm mt-1">Pulsa "Generar siguiente ronda" para empezar</p>
+    </div>
+    {% endfor %}
+    </div>
+</div>
+{% endblock %}

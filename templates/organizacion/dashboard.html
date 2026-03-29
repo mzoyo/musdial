@@ -1,0 +1,89 @@
+{% extends "organizacion/base_org.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+{% with active_tab="dashboard" %}{% endwith %}
+<div class="space-y-6">
+    <h1 class="text-2xl font-black text-gray-900">Dashboard</h1>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="stat-card">
+            <p class="text-3xl font-black text-mus-600">{{ parejas_count }}</p>
+            <p class="text-xs text-gray-400 font-medium mt-1">Parejas</p>
+        </div>
+        <div class="stat-card">
+            <p class="text-3xl font-black text-gray-900">{{ rondas|length }}</p>
+            <p class="text-xs text-gray-400 font-medium mt-1">Rondas</p>
+        </div>
+        <div class="stat-card">
+            <p class="text-3xl font-black text-gray-900">{{ partidas_finalizadas }}/{{ partidas_total }}</p>
+            <p class="text-xs text-gray-400 font-medium mt-1">Partidas</p>
+        </div>
+        <div class="stat-card">
+            <p class="text-3xl font-black {% if juegos_rechazados > 0 %}text-red-500{% else %}text-mus-600{% endif %}">{{ juegos_rechazados }}</p>
+            <p class="text-xs text-gray-400 font-medium mt-1">Rechazados</p>
+        </div>
+    </div>
+
+    <!-- Ronda actual -->
+    {% if ronda_actual %}
+    <div class="card border-2 !border-mus-200">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+                <span class="relative flex h-3 w-3">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-mus-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-mus-500"></span>
+                </span>
+                <h2 class="font-bold text-mus-700">{{ ronda_actual }}</h2>
+            </div>
+            <a href="{% url 'org_ronda_detalle' ronda_actual.pk %}" class="btn btn-secondary text-xs">Ver detalle</a>
+        </div>
+        {% with partidas=ronda_actual.partidas.all %}
+        <div class="grid grid-cols-3 gap-2 text-center mb-3">
+            <div class="bg-mus-50 rounded-xl py-2">
+                <p class="text-lg font-black text-mus-600">{% for p in partidas %}{% if p.estado == "finalizada" %}{% cycle 1 %}{% endif %}{% endfor %}</p>
+                <p class="text-[10px] text-mus-600 font-medium">Finalizadas</p>
+            </div>
+            <div class="bg-amber-50 rounded-xl py-2">
+                <p class="text-lg font-black text-amber-600">{% for p in partidas %}{% if p.estado == "en_curso" %}{% cycle 1 %}{% endif %}{% endfor %}</p>
+                <p class="text-[10px] text-amber-600 font-medium">En curso</p>
+            </div>
+            <div class="bg-gray-50 rounded-xl py-2">
+                <p class="text-lg font-black text-gray-400">{% for p in partidas %}{% if p.estado == "pendiente" %}{% cycle 1 %}{% endif %}{% endfor %}</p>
+                <p class="text-[10px] text-gray-400 font-medium">Pendientes</p>
+            </div>
+        </div>
+        {% endwith %}
+    </div>
+    {% endif %}
+
+    <!-- Acciones rapidas -->
+    <div class="card">
+        <h2 class="font-bold text-sm text-gray-400 uppercase tracking-wider mb-4">Acciones rapidas</h2>
+        <div class="grid grid-cols-2 gap-3">
+            <a href="{% url 'org_parejas' %}" class="btn btn-secondary">Gestionar parejas</a>
+            <a href="{% url 'org_rondas' %}" class="btn btn-secondary">Gestionar rondas</a>
+            <a href="{% url 'org_metricas' %}" class="btn btn-secondary">Ver metricas</a>
+            <a href="{% url 'clasificacion' %}" class="btn btn-secondary">Clasificacion</a>
+        </div>
+    </div>
+
+    <!-- Ultimas rondas -->
+    <div class="card">
+        <h2 class="font-bold text-sm text-gray-400 uppercase tracking-wider mb-4">Rondas</h2>
+        <div class="space-y-2">
+        {% for ronda in rondas %}
+        <a href="{% url 'org_ronda_detalle' ronda.pk %}" class="flex items-center justify-between py-3 px-4 rounded-2xl hover:bg-gray-50 transition-colors">
+            <span class="font-medium text-sm">{{ ronda }}</span>
+            <span class="badge {% if ronda.estado == 'completada' %}badge-green{% elif ronda.estado == 'en_curso' %}badge-yellow{% else %}badge-gray{% endif %}">
+                {{ ronda.get_estado_display }}
+            </span>
+        </a>
+        {% empty %}
+        <p class="text-gray-400 text-center py-4 text-sm">No hay rondas creadas</p>
+        {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

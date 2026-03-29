@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Organizacion{% endblock %} - Musdial</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        mus: {
+                            50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0',
+                            300: '#6ee7b7', 400: '#34d399', 500: '#10b981',
+                            600: '#059669', 700: '#047857', 800: '#065f46',
+                            900: '#064e3b', 950: '#022c22',
+                        }
+                    },
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .btn { @apply inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-bold text-center transition-all duration-200 active:scale-95 select-none gap-2; }
+            .btn-primary { @apply bg-gradient-to-b from-mus-500 to-mus-600 text-white shadow-lg shadow-mus-500/25 hover:from-mus-400 hover:to-mus-500; }
+            .btn-danger { @apply bg-gradient-to-b from-red-400 to-red-500 text-white shadow-lg shadow-red-500/25; }
+            .btn-secondary { @apply bg-white text-gray-700 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50; }
+            .btn-warning { @apply bg-gradient-to-b from-amber-400 to-amber-500 text-white shadow-lg shadow-amber-500/25; }
+            .card { @apply bg-white rounded-3xl shadow-sm border border-gray-100 p-6; }
+            .stat-card { @apply bg-white rounded-3xl shadow-sm border border-gray-100 p-5 text-center; }
+            .badge { @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold; }
+            .badge-green { @apply bg-mus-100 text-mus-700; }
+            .badge-yellow { @apply bg-amber-100 text-amber-700; }
+            .badge-gray { @apply bg-gray-100 text-gray-500; }
+            .badge-red { @apply bg-red-100 text-red-600; }
+            .input-field { @apply w-full px-4 py-3 border-2 border-gray-200 rounded-2xl text-sm font-medium focus:border-mus-500 focus:ring-4 focus:ring-mus-500/10 focus:outline-none transition-all; }
+            .nav-link { @apply px-4 py-2.5 rounded-xl text-sm font-medium transition-colors; }
+            .nav-link-active { @apply bg-white/15 text-white; }
+            .nav-link-inactive { @apply text-white/60 hover:text-white hover:bg-white/10; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50/50 min-h-screen font-sans">
+    <header class="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white shadow-xl">
+        <div class="max-w-5xl mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">&#127183;</span>
+                    <div>
+                        <span class="text-lg font-black tracking-tight">MUSDIAL</span>
+                        <span class="badge bg-amber-500/20 text-amber-300 text-[10px] ml-2">ORGANIZACION</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="{% url 'inicio' %}" class="nav-link nav-link-inactive text-xs">Ver web</a>
+                    <a href="{% url 'org_logout' %}" class="nav-link nav-link-inactive text-xs">Salir</a>
+                </div>
+            </div>
+            <nav class="flex gap-1 mt-3 overflow-x-auto pb-1">
+                <a href="{% url 'org_dashboard' %}" class="nav-link {% if active_tab == 'dashboard' %}nav-link-active{% else %}nav-link-inactive{% endif %}">Dashboard</a>
+                <a href="{% url 'org_parejas' %}" class="nav-link {% if active_tab == 'parejas' %}nav-link-active{% else %}nav-link-inactive{% endif %}">Parejas</a>
+                <a href="{% url 'org_rondas' %}" class="nav-link {% if active_tab == 'rondas' %}nav-link-active{% else %}nav-link-inactive{% endif %}">Rondas</a>
+                <a href="{% url 'org_metricas' %}" class="nav-link {% if active_tab == 'metricas' %}nav-link-active{% else %}nav-link-inactive{% endif %}">Metricas</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 py-6 pb-20">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

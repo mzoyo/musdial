@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Clasificacion - Musdial{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+    <div>
+        <a href="{% url 'inicio' %}" class="text-sm text-mus-600 font-medium hover:underline">&larr; Inicio</a>
+        <h1 class="text-2xl font-black text-gray-900 mt-1">Clasificacion general</h1>
+    </div>
+
+    <!-- Cabecera fija -->
+    <div class="grid grid-cols-12 gap-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider px-4">
+        <div class="col-span-1">#</div>
+        <div class="col-span-4">Pareja</div>
+        <div class="col-span-2 text-center">Pts</div>
+        <div class="col-span-2 text-center">Buch</div>
+        <div class="col-span-1 text-center">DP</div>
+        <div class="col-span-2 text-center">PF</div>
+    </div>
+
+    <div class="space-y-2">
+    {% for entry in tabla %}
+    <div class="card py-3 px-4 grid grid-cols-12 gap-1 items-center
+        {% if entry.posicion <= 16 %}border-l-4 !border-l-mus-400{% else %}border-l-4 !border-l-gray-200{% endif %}
+        {% if entry.posicion == 16 %}!mb-4{% endif %}">
+        <div class="col-span-1">
+            <span class="text-lg font-black {% if entry.posicion <= 3 %}text-mus-600{% elif entry.posicion <= 16 %}text-gray-700{% else %}text-gray-300{% endif %}">
+                {{ entry.posicion }}
+            </span>
+        </div>
+        <div class="col-span-4">
+            <p class="font-bold text-sm truncate">{{ entry.pareja.nombre }}</p>
+            <p class="text-[10px] text-gray-400">{{ entry.victorias }}V</p>
+        </div>
+        <div class="col-span-2 text-center">
+            <span class="text-xl font-black text-gray-900">{{ entry.puntos }}</span>
+        </div>
+        <div class="col-span-2 text-center text-sm text-gray-500 font-medium">{{ entry.buchholz }}</div>
+        <div class="col-span-1 text-center text-sm font-semibold
+            {% if entry.dif_piedras > 0 %}text-mus-600{% elif entry.dif_piedras < 0 %}text-red-400{% else %}text-gray-300{% endif %}">
+            {% if entry.dif_piedras > 0 %}+{% endif %}{{ entry.dif_piedras }}
+        </div>
+        <div class="col-span-2 text-center text-sm text-gray-400">{{ entry.piedras_favor }}</div>
+    </div>
+
+    {% if entry.posicion == 16 %}
+    <div class="flex items-center gap-2 py-2 px-4">
+        <div class="flex-1 h-px bg-gradient-to-r from-transparent via-red-300 to-transparent"></div>
+        <span class="text-[10px] font-bold text-red-400 uppercase tracking-wider">Linea de corte</span>
+        <div class="flex-1 h-px bg-gradient-to-r from-transparent via-red-300 to-transparent"></div>
+    </div>
+    {% endif %}
+
+    {% empty %}
+    <div class="card text-center py-10">
+        <p class="text-4xl mb-3">&#128202;</p>
+        <p class="text-gray-400 font-medium">Aun no hay resultados</p>
+    </div>
+    {% endfor %}
+    </div>
+
+    <div class="card text-xs text-gray-400 space-y-1">
+        <p><strong class="text-gray-500">Pts</strong> Puntos &middot; <strong class="text-gray-500">Buch</strong> Buchholz &middot; <strong class="text-gray-500">DP</strong> Dif. piedras &middot; <strong class="text-gray-500">PF</strong> Piedras a favor</p>
+        <p>Las 16 primeras parejas (borde verde) pasan a eliminatorias.</p>
+    </div>
+</div>
+{% endblock %}

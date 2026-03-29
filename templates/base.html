@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Musdial{% endblock %}</title>
+    <meta name="description" content="Torneo de mus - Musdial">
+    <meta property="og:title" content="Musdial - Torneo de Mus">
+    <meta property="og:description" content="{% block og_description %}Sigue el torneo de mus en directo{% endblock %}">
+    <meta property="og:type" content="website">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        mus: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            200: '#a7f3d0',
+                            300: '#6ee7b7',
+                            400: '#34d399',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                            950: '#022c22',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .btn {
+                @apply inline-flex items-center justify-center rounded-2xl px-6 py-4 text-lg font-bold text-center transition-all duration-200 active:scale-95 select-none;
+            }
+            .btn-primary {
+                @apply bg-gradient-to-b from-mus-500 to-mus-600 text-white shadow-lg shadow-mus-500/25 hover:shadow-xl hover:shadow-mus-500/30 hover:from-mus-400 hover:to-mus-500;
+            }
+            .btn-danger {
+                @apply bg-gradient-to-b from-red-400 to-red-500 text-white shadow-lg shadow-red-500/25 hover:shadow-xl hover:shadow-red-500/30;
+            }
+            .btn-secondary {
+                @apply bg-white text-gray-700 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50;
+            }
+            .card {
+                @apply bg-white rounded-3xl shadow-sm border border-gray-100 p-5;
+            }
+            .card-highlight {
+                @apply bg-white rounded-3xl shadow-md border-2 border-mus-200 p-5;
+            }
+            .badge {
+                @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold;
+            }
+            .badge-green { @apply bg-mus-100 text-mus-700; }
+            .badge-yellow { @apply bg-amber-100 text-amber-700; }
+            .badge-gray { @apply bg-gray-100 text-gray-500; }
+            .badge-red { @apply bg-red-100 text-red-600; }
+            .badge-blue { @apply bg-blue-100 text-blue-700; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50/50 min-h-screen font-sans">
+    <header class="bg-gradient-to-r from-mus-800 via-mus-700 to-mus-800 text-white shadow-lg">
+        <div class="max-w-lg mx-auto px-4 py-4 flex items-center justify-between">
+            <a href="{% url 'inicio' %}" class="flex items-center gap-2">
+                <span class="text-3xl">&#127183;</span>
+                <span class="text-2xl font-black tracking-tight">MUSDIAL</span>
+            </a>
+            <nav class="flex gap-1">
+                <a href="{% url 'clasificacion' %}" class="px-3 py-2 rounded-xl text-sm font-medium text-white/80 hover:text-white hover:bg-white/10 transition-colors">
+                    Clasificacion
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-lg mx-auto px-4 py-6 pb-20">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="text-center text-gray-400 text-xs py-6 border-t border-gray-100">
+        Musdial &copy; 2026
+    </footer>
+</body>
+</html>

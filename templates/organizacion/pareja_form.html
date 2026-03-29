@@ -1,0 +1,38 @@
+{% extends "organizacion/base_org.html" %}
+{% block title %}{% if pareja %}Editar {{ pareja.nombre }}{% else %}Nueva pareja{% endif %}{% endblock %}
+
+{% block content %}
+<div class="space-y-6 max-w-md mx-auto">
+    <a href="{% url 'org_parejas' %}" class="text-sm text-mus-600 font-medium hover:underline">&larr; Parejas</a>
+
+    <h1 class="text-2xl font-black text-gray-900">
+        {% if pareja %}Editar pareja{% else %}Nueva pareja{% endif %}
+    </h1>
+
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+        <div>
+            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Nombre de la pareja</label>
+            <input type="text" name="nombre" value="{{ pareja.nombre|default:'' }}" required class="input-field" placeholder="Ej: Los Ases">
+        </div>
+        <div>
+            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Jugador 1</label>
+            <input type="text" name="jugador1" value="{{ pareja.jugador1|default:'' }}" required class="input-field" placeholder="Nombre completo">
+        </div>
+        <div>
+            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Jugador 2</label>
+            <input type="text" name="jugador2" value="{{ pareja.jugador2|default:'' }}" required class="input-field" placeholder="Nombre completo">
+        </div>
+        {% if pareja %}
+        <div class="flex items-center gap-3 bg-gray-50 rounded-2xl p-4">
+            <input type="checkbox" name="activa" id="activa" {% if pareja.activa %}checked{% endif %}
+                   class="w-5 h-5 rounded border-gray-300 text-mus-600 focus:ring-mus-500">
+            <label for="activa" class="text-sm font-medium text-gray-700">Pareja activa</label>
+        </div>
+        {% endif %}
+        <button type="submit" class="btn btn-primary w-full">
+            {% if pareja %}Guardar cambios{% else %}Crear pareja{% endif %}
+        </button>
+    </form>
+</div>
+{% endblock %}

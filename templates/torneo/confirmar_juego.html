@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Confirmar juego - Musdial{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <a href="{% url 'panel_pareja' pareja.token %}" class="text-sm text-mus-600 font-medium hover:underline">&larr; Volver a tu panel</a>
+
+    <div class="text-center">
+        <h1 class="text-xl font-black text-gray-900">Confirmar resultado</h1>
+        <p class="text-sm text-gray-400 mt-1">{{ juego.partida.pareja_1 }} vs {{ juego.partida.pareja_2 }}</p>
+    </div>
+
+    <div class="card-highlight text-center py-6">
+        <p class="text-xs text-gray-400 font-medium mb-4">JUEGO {{ juego.numero }} &middot; Subido por {{ juego.subido_por }}</p>
+        <div class="flex items-center justify-center gap-8">
+            <div>
+                <p class="text-xs text-gray-400 mb-1">{{ juego.partida.pareja_1 }}</p>
+                <p class="text-5xl font-black tabular-nums {% if juego.ganador_juego == juego.partida.pareja_1 %}text-mus-600{% else %}text-gray-300{% endif %}">
+                    {{ juego.piedras_1 }}
+                </p>
+            </div>
+            <span class="text-gray-200 text-2xl font-bold">:</span>
+            <div>
+                <p class="text-xs text-gray-400 mb-1">{{ juego.partida.pareja_2 }}</p>
+                <p class="text-5xl font-black tabular-nums {% if juego.ganador_juego == juego.partida.pareja_2 %}text-mus-600{% else %}text-gray-300{% endif %}">
+                    {{ juego.piedras_2 }}
+                </p>
+            </div>
+        </div>
+        <p class="mt-4 badge badge-green">Gana juego: {{ juego.ganador_juego }}</p>
+    </div>
+
+    <p class="text-center text-lg font-bold text-gray-900">¿Es correcto este resultado?</p>
+
+    <div class="flex gap-3">
+        <form method="post" class="flex-1">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="confirmar">
+            <button type="submit" class="btn btn-primary w-full text-xl !py-5">
+                Si
+            </button>
+        </form>
+        <form method="post" class="flex-1">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="rechazar">
+            <button type="submit" class="btn btn-danger w-full text-xl !py-5">
+                No
+            </button>
+        </form>
+    </div>
+
+    <p class="text-center text-xs text-gray-400">
+        Si rechazas, se avisara a la organizacion para que medie.
+    </p>
+</div>
+{% endblock %}

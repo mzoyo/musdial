@@ -1,0 +1,88 @@
+{% extends "organizacion/base_org.html" %}
+{% block title %}{{ ronda }}{% endblock %}
+
+{% block content %}
+{% with active_tab="rondas" %}{% endwith %}
+<div class="space-y-4">
+    <a href="{% url 'org_rondas' %}" class="text-sm text-mus-600 font-medium hover:underline">&larr; Rondas</a>
+
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-black text-gray-900">{{ ronda }}</h1>
+            <span class="badge {% if ronda.estado == 'completada' %}badge-green{% elif ronda.estado == 'en_curso' %}badge-yellow{% else %}badge-gray{% endif %} mt-1">
+                {{ ronda.get_estado_display }}
+            </span>
+        </div>
+        {% if ronda.estado == "en_curso" %}
+        <form method="post" action="{% url 'org_completar_ronda' ronda.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-warning"
+                    onclick="return confirm('¿Completar esta ronda?')">
+                Completar ronda
+            </button>
+        </form>
+        {% endif %}
+    </div>
+
+    <div class="space-y-3">
+    {% for partida in partidas %}
+    <div class="card py-4">
+        <div class="flex items-center gap-4">
+            <!-- Estado visual -->
+            <div class="shrink-0">
+                {% if partida.estado == "finalizada" %}
+                <div class="w-3 h-3 rounded-full bg-mus-500"></div>
+                {% elif partida.estado == "en_curso" %}
+                <span class="relative flex h-3 w-3">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+                </span>
+                {% else %}
+                <div class="w-3 h-3 rounded-full bg-gray-200"></div>
+                {% endif %}
+            </div>
+
+            <!-- Equipos -->
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                    <p class="font-bold text-sm truncate {% if partida.ganador == partida.pareja_1 %}text-mus-700{% endif %}">
+                        {{ partida.pareja_1 }}
+                    </p>
+                    <span class="text-gray-300 text-xs">vs</span>
+                    <p class="font-bold text-sm truncate {% if partida.ganador == partida.pareja_2 %}text-mus-700{% else %}text-gray-500{% endif %}">
+                        {{ partida.pareja_2 }}
+                    </p>
+                </div>
+                <div class="flex items-center gap-2 mt-1">
+                    {% if partida.estado == "finalizada" %}
+                        <span class="badge badge-green">{{ partida.marcador }}</span>
+                        <span class="text-xs text-gray-400">Gana: {{ partida.ganador }}</span>
+                    {% elif partida.estado == "en_curso" %}
+                        <span class="badge badge-yellow">{{ partida.marcador }}</span>
+                        {% for juego in partida.juegos.all %}
+                            {% if juego.estado == "pendiente" %}
+                            <span class="badge badge-red text-[10px]">Juego {{ juego.numero }} sin confirmar</span>
+                            {% endif %}
+                            {% if juego.estado == "rechazado" %}
+                            <span class="badge badge-red text-[10px]">Juego {{ juego.numero }} RECHAZADO</span>
+                            {% endif %}
+                        {% endfor %}
+                    {% elif partida.inicio_solicitado_por %}
+                        <span class="badge badge-yellow">{{ partida.inicio_solicitado_por }} quiere empezar</span>
+                    {% else %}
+                        <span class="badge badge-gray">Pendiente de inicio</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Enlaces parejas -->
+            <div class="shrink-0 text-right space-y-1">
+                <a href="/pareja/{{ partida.pareja_1.token }}/" class="text-[10px] text-mus-600 hover:underline block">Panel {{ partida.pareja_1 }}</a>
+                <a href="/pareja/{{ partida.pareja_2.token }}/" class="text-[10px] text-mus-600 hover:underline block">Panel {{ partida.pareja_2 }}</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    </div>
+</div>
+{% endblock %}

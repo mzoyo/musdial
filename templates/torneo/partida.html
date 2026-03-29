@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}{{ partida }} - Musdial{% endblock %}
+
+{% block content %}
+<div class="space-y-5">
+    <a href="{% url 'ronda_detalle' partida.ronda.numero %}" class="text-sm text-mus-600 font-medium hover:underline">&larr; {{ partida.ronda }}</a>
+
+    <!-- Marcador principal -->
+    <div class="card-highlight text-center py-6">
+        <p class="text-xs text-gray-400 font-medium uppercase tracking-wider mb-4">{{ partida.ronda }}</p>
+        <div class="flex items-center justify-center gap-5">
+            <div class="flex-1 text-right">
+                <p class="text-lg font-black leading-tight {% if partida.ganador == partida.pareja_1 %}text-mus-700{% else %}text-gray-800{% endif %}">
+                    {{ partida.pareja_1 }}
+                </p>
+            </div>
+            <div class="bg-gray-900 rounded-2xl px-5 py-3 shadow-lg">
+                <span class="text-3xl font-black text-white tabular-nums">
+                    {{ partida.juegos_pareja_1 }} - {{ partida.juegos_pareja_2 }}
+                </span>
+            </div>
+            <div class="flex-1 text-left">
+                <p class="text-lg font-black leading-tight {% if partida.ganador == partida.pareja_2 %}text-mus-700{% else %}text-gray-800{% endif %}">
+                    {{ partida.pareja_2 }}
+                </p>
+            </div>
+        </div>
+        {% if partida.ganador %}
+        <p class="mt-4 badge badge-green text-sm">Gana: {{ partida.ganador }}</p>
+        {% elif partida.estado == "en_curso" %}
+        <div class="mt-4 flex items-center justify-center gap-2">
+            <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+            </span>
+            <span class="text-sm font-semibold text-amber-600">En juego</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Juegos -->
+    <div>
+        <h2 class="font-bold text-sm text-gray-400 uppercase tracking-wider mb-3 px-1">Detalle de juegos</h2>
+        <div class="space-y-2">
+        {% for juego in juegos %}
+        <div class="card py-4">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-gray-400">JUEGO {{ juego.numero }}</span>
+            </div>
+            <div class="flex items-center justify-center gap-8">
+                <div class="text-center">
+                    <p class="text-3xl font-black tabular-nums {% if juego.ganador_juego == partida.pareja_1 %}text-mus-600{% else %}text-gray-300{% endif %}">
+                        {{ juego.piedras_1 }}
+                    </p>
+                </div>
+                <span class="text-gray-200 text-lg font-bold">:</span>
+                <div class="text-center">
+                    <p class="text-3xl font-black tabular-nums {% if juego.ganador_juego == partida.pareja_2 %}text-mus-600{% else %}text-gray-300{% endif %}">
+                        {{ juego.piedras_2 }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="card text-center py-8">
+            <p class="text-gray-300 text-4xl mb-2">&#9203;</p>
+            <p class="text-gray-400 font-medium">Aun no se han jugado juegos</p>
+        </div>
+        {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

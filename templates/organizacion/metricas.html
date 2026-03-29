@@ -1,0 +1,86 @@
+{% extends "organizacion/base_org.html" %}
+{% block title %}Metricas anti-trampa{% endblock %}
+
+{% block content %}
+{% with active_tab="metricas" %}{% endwith %}
+<div class="space-y-6">
+    <h1 class="text-2xl font-black text-gray-900">Metricas anti-trampa</h1>
+
+    <!-- Juegos rechazados -->
+    <div class="card">
+        <div class="flex items-center gap-2 mb-4">
+            <span class="text-xl">&#9888;&#65039;</span>
+            <h2 class="font-bold">Juegos rechazados</h2>
+            <span class="badge {% if juegos_rechazados %}badge-red{% else %}badge-green{% endif %}">{{ juegos_rechazados|length }}</span>
+        </div>
+        {% if juegos_rechazados %}
+        <div class="space-y-2">
+        {% for juego in juegos_rechazados %}
+        <div class="bg-red-50 rounded-2xl p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-bold">{{ juego.partida.pareja_1 }} vs {{ juego.partida.pareja_2 }}</p>
+                    <p class="text-xs text-gray-500">Juego {{ juego.numero }} &middot; {{ juego.piedras_1 }}-{{ juego.piedras_2 }} &middot; Subido por {{ juego.subido_por }}</p>
+                </div>
+                <span class="badge badge-red">Rechazado</span>
+            </div>
+        </div>
+        {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-gray-400 text-sm text-center py-4">Ningun juego rechazado. Todo limpio.</p>
+        {% endif %}
+    </div>
+
+    <!-- Partidas sospechosamente rapidas -->
+    <div class="card">
+        <div class="flex items-center gap-2 mb-4">
+            <span class="text-xl">&#9201;</span>
+            <h2 class="font-bold">Partidas rapidas (&lt;10 min)</h2>
+            <span class="badge {% if partidas_rapidas %}badge-yellow{% else %}badge-green{% endif %}">{{ partidas_rapidas|length }}</span>
+        </div>
+        {% if partidas_rapidas %}
+        <div class="space-y-2">
+        {% for item in partidas_rapidas %}
+        <div class="bg-amber-50 rounded-2xl p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-bold">{{ item.partida.pareja_1 }} vs {{ item.partida.pareja_2 }}</p>
+                    <p class="text-xs text-gray-500">{{ item.partida.ronda }} &middot; {{ item.partida.marcador }}</p>
+                </div>
+                <span class="badge badge-yellow">{{ item.duracion_min }} min</span>
+            </div>
+        </div>
+        {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-gray-400 text-sm text-center py-4">Ninguna partida sospechosamente rapida.</p>
+        {% endif %}
+    </div>
+
+    <!-- Juegos 40-0 -->
+    <div class="card">
+        <div class="flex items-center gap-2 mb-4">
+            <span class="text-xl">&#128064;</span>
+            <h2 class="font-bold">Juegos con 40-0</h2>
+            <span class="badge {% if juegos_sospechosos %}badge-yellow{% else %}badge-green{% endif %}">{{ juegos_sospechosos|length }}</span>
+        </div>
+        {% if juegos_sospechosos %}
+        <p class="text-xs text-gray-400 mb-3">Un 40-0 ocasional es normal. Varios en la misma partida pueden indicar resultado pactado.</p>
+        <div class="space-y-2">
+        {% for juego in juegos_sospechosos %}
+        <div class="bg-gray-50 rounded-2xl p-3 flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium">{{ juego.partida.pareja_1 }} vs {{ juego.partida.pareja_2 }}</p>
+                <p class="text-xs text-gray-400">Juego {{ juego.numero }}</p>
+            </div>
+            <span class="font-bold text-sm text-gray-900">{{ juego.piedras_1 }} - {{ juego.piedras_2 }}</span>
+        </div>
+        {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-gray-400 text-sm text-center py-4">Ningun juego 40-0 registrado.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

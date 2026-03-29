@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}{{ pareja.nombre }} - Panel{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Cabecera pareja -->
+    <div class="text-center py-4">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-mus-400 to-mus-600 text-white text-2xl font-black mb-3 shadow-lg shadow-mus-500/30">
+            {{ pareja.nombre|truncatechars:2 }}
+        </div>
+        <h1 class="text-2xl font-black text-gray-900">{{ pareja.nombre }}</h1>
+        <p class="text-sm text-gray-400 mt-0.5">{{ pareja.jugador1 }} &middot; {{ pareja.jugador2 }}</p>
+    </div>
+
+    <!-- Juegos pendientes de confirmar -->
+    {% if pendientes %}
+    <div class="space-y-3">
+        <div class="flex items-center gap-2 px-1">
+            <span class="relative flex h-3 w-3">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+            </span>
+            <h2 class="font-bold text-amber-700">Pendiente de confirmar</h2>
+        </div>
+        {% for juego in pendientes %}
+        <div class="card border-2 !border-amber-200 !bg-amber-50/50">
+            <p class="text-xs text-gray-400 font-medium mb-3">Juego {{ juego.numero }} &middot; Subido por {{ juego.subido_por }}</p>
+            <div class="flex items-center justify-center gap-6 mb-4">
+                <div class="text-center">
+                    <p class="text-xs text-gray-400 mb-1">{{ juego.partida.pareja_1 }}</p>
+                    <p class="text-4xl font-black tabular-nums {% if juego.ganador_juego == juego.partida.pareja_1 %}text-mus-600{% else %}text-gray-300{% endif %}">{{ juego.piedras_1 }}</p>
+                </div>
+                <span class="text-gray-200 text-xl font-bold">:</span>
+                <div class="text-center">
+                    <p class="text-xs text-gray-400 mb-1">{{ juego.partida.pareja_2 }}</p>
+                    <p class="text-4xl font-black tabular-nums {% if juego.ganador_juego == juego.partida.pareja_2 %}text-mus-600{% else %}text-gray-300{% endif %}">{{ juego.piedras_2 }}</p>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <form method="post" action="{% url 'confirmar_juego' pareja.token juego.pk %}" class="flex-1">
+                    {% csrf_token %}
+                    <input type="hidden" name="accion" value="confirmar">
+                    <button type="submit" class="btn btn-primary w-full !py-3">Confirmar</button>
+                </form>
+                <form method="post" action="{% url 'confirmar_juego' pareja.token juego.pk %}" class="flex-1">
+                    {% csrf_token %}
+                    <input type="hidden" name="accion" value="rechazar">
+                    <button type="submit" class="btn btn-danger w-full !py-3">Rechazar</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Partida actual -->
+    {% if partida_actual %}
+    <div class="card">
+        <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Tu partida</h2>
+
+        <!-- Rival -->
+        <div class="text-center mb-4">
+            <p class="text-sm text-gray-400">Tu rival:</p>
+            <p class="text-xl font-black text-gray-900 mt-1">
+                {% if partida_actual.pareja_1 == pareja %}
+                    {{ partida_actual.pareja_2 }}
+                {% else %}
+                    {{ partida_actual.pareja_1 }}
+                {% endif %}
+            </p>
+        </div>
+
+        <!-- Marcador -->
+        <div class="bg-gray-50 rounded-2xl py-4 text-center mb-5">
+            <div class="flex items-center justify-center gap-4">
+                <div class="text-center">
+                    <p class="text-xs text-gray-400 mb-1">{{ partida_actual.pareja_1 }}</p>
+                    <p class="text-3xl font-black tabular-nums">{{ partida_actual.juegos_pareja_1 }}</p>
+                </div>
+                <span class="text-2xl text-gray-300 font-bold">-</span>
+                <div class="text-center">
+                    <p class="text-xs text-gray-400 mb-1">{{ partida_actual.pareja_2 }}</p>
+                    <p class="text-3xl font-black tabular-nums">{{ partida_actual.juegos_pareja_2 }}</p>
+                </div>
+            </div>
+        </div>
+
+        {% if partida_actual.estado == "finalizada" %}
+            <!-- Partida terminada -->
+            <div class="text-center py-2">
+                <span class="badge badge-green text-sm">Gana: {{ partida_actual.ganador }}</span>
+            </div>
+
+        {% elif partida_actual.estado == "en_curso" %}
+            <!-- Partida en curso: boton subir juego -->
+            <a href="{% url 'subir_juego' pareja.token %}" class="btn btn-primary block w-full">
+                Subir juego
+            </a>
+
+        {% elif partida_actual.inicio_solicitado_por == pareja %}
+            <!-- Esta pareja ya pidio iniciar, esperando rival -->
+            <div class="text-center space-y-3">
+                <div class="inline-flex items-center gap-2 badge badge-yellow text-sm">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                    </span>
+                    Esperando a que tu rival confirme el inicio
+                </div>
+                <p class="text-xs text-gray-400">Tu rival debe pulsar "Empezar partida" desde su panel</p>
+            </div>
+
+        {% elif partida_actual.inicio_solicitado_por is not None %}
+            <!-- El rival pidio iniciar, esta pareja confirma -->
+            <div class="text-center space-y-3">
+                <p class="text-sm text-gray-600 font-medium">Tu rival quiere empezar la partida</p>
+                <form method="post" action="{% url 'solicitar_inicio' pareja.token %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary w-full text-xl">
+                        Empezar partida
+                    </button>
+                </form>
+            </div>
+
+        {% else %}
+            <!-- Nadie ha pedido iniciar todavia -->
+            <form method="post" action="{% url 'solicitar_inicio' pareja.token %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary w-full text-xl">
+                    Empezar partida
+                </button>
+                <p class="text-xs text-gray-400 text-center mt-3">Tu rival tendra que confirmar el inicio</p>
+            </form>
+        {% endif %}
+    </div>
+
+    {% else %}
+    <!-- Sin partida activa -->
+    <div class="card text-center py-10">
+        <p class="text-5xl mb-4">&#127183;</p>
+        <p class="text-lg font-bold text-gray-400">Sin partida en curso</p>
+        <p class="text-sm text-gray-300 mt-1 max-w-xs mx-auto">Cuando se publiquen los cruces de la siguiente ronda, aqui veras tu partida y tu rival</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

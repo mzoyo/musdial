@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Subir juego - Musdial{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <a href="{% url 'panel_pareja' pareja.token %}" class="text-sm text-mus-600 font-medium hover:underline">&larr; Volver a tu panel</a>
+
+    <div class="text-center">
+        <h1 class="text-xl font-black text-gray-900">Subir resultado</h1>
+        <p class="text-sm text-gray-400 mt-1">{{ partida.pareja_1 }} vs {{ partida.pareja_2 }}</p>
+        <p class="badge badge-gray mt-2">Marcador: {{ partida.marcador }}</p>
+    </div>
+
+    {% if error %}
+    <div class="card !bg-red-50 !border-red-200 border-2 text-center">
+        <p class="text-red-600 font-bold">{{ error }}</p>
+    </div>
+    {% endif %}
+
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+
+        <div class="card text-center">
+            <label class="block mb-3">
+                <span class="text-xs text-gray-400 font-medium uppercase tracking-wider">Piedras de</span>
+                <span class="block text-lg font-black text-gray-900 mt-0.5">{{ partida.pareja_1 }}</span>
+            </label>
+            <input type="number" name="piedras_1" min="0" max="40" required
+                   placeholder="0"
+                   class="w-full text-center text-5xl font-black py-5 border-2 border-gray-200 rounded-2xl focus:border-mus-500 focus:ring-4 focus:ring-mus-500/10 focus:outline-none transition-all tabular-nums"
+                   inputmode="numeric">
+        </div>
+
+        <div class="card text-center">
+            <label class="block mb-3">
+                <span class="text-xs text-gray-400 font-medium uppercase tracking-wider">Piedras de</span>
+                <span class="block text-lg font-black text-gray-900 mt-0.5">{{ partida.pareja_2 }}</span>
+            </label>
+            <input type="number" name="piedras_2" min="0" max="40" required
+                   placeholder="0"
+                   class="w-full text-center text-5xl font-black py-5 border-2 border-gray-200 rounded-2xl focus:border-mus-500 focus:ring-4 focus:ring-mus-500/10 focus:outline-none transition-all tabular-nums"
+                   inputmode="numeric">
+        </div>
+
+        <p class="text-center text-xs text-gray-400 px-4">
+            El ganador del juego siempre tiene 40 piedras.
+            Tu rival tendra que confirmar este resultado.
+        </p>
+
+        <button type="submit" class="btn btn-primary block w-full text-xl">
+            Enviar resultado
+        </button>
+    </form>
+</div>
+{% endblock %}

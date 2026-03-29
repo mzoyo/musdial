@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Musdial - Torneo de Mus{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="text-center py-6">
+        <h1 class="text-5xl font-black bg-gradient-to-r from-mus-600 to-mus-800 bg-clip-text text-transparent">MUSDIAL</h1>
+        <p class="text-gray-400 mt-2 text-sm font-medium">Torneo de Mus &middot; 26 parejas &middot; Sistema Suizo</p>
+    </div>
+
+    {% if ronda_actual %}
+    <div class="card-highlight">
+        <div class="flex items-center gap-2 mb-4">
+            <span class="relative flex h-3 w-3">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-mus-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-mus-500"></span>
+            </span>
+            <h2 class="font-bold text-mus-700">{{ ronda_actual }}</h2>
+        </div>
+        <div class="space-y-2">
+        {% for partida in ronda_actual.partidas.all %}
+        <a href="{% url 'partida_detalle' partida.pk %}" class="flex justify-between items-center py-3 px-4 rounded-2xl hover:bg-mus-50 transition-colors">
+            <div class="flex-1 min-w-0">
+                <p class="font-semibold text-sm truncate">{{ partida.pareja_1 }}</p>
+                <p class="font-semibold text-sm truncate text-gray-500">{{ partida.pareja_2 }}</p>
+            </div>
+            <div class="ml-3 text-right shrink-0">
+                {% if partida.ganador %}
+                    <span class="badge badge-green">{{ partida.marcador }}</span>
+                {% elif partida.estado == "en_curso" %}
+                    <span class="badge badge-yellow">{{ partida.marcador }}</span>
+                {% else %}
+                    <span class="badge badge-gray">Pendiente</span>
+                {% endif %}
+            </div>
+        </a>
+        {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <h2 class="font-bold text-lg mb-3">Todas las rondas</h2>
+        <div class="space-y-1">
+        {% for ronda in rondas %}
+        <a href="{% url 'ronda_detalle' ronda.numero %}" class="flex justify-between items-center py-3 px-4 rounded-2xl hover:bg-gray-50 transition-colors">
+            <span class="font-medium text-sm">{{ ronda }}</span>
+            <span class="badge
+                {% if ronda.estado == 'completada' %}badge-green
+                {% elif ronda.estado == 'en_curso' %}badge-yellow
+                {% else %}badge-gray{% endif %}">
+                {{ ronda.get_estado_display }}
+            </span>
+        </a>
+        {% empty %}
+        <div class="text-center py-8">
+            <p class="text-4xl mb-3">&#127183;</p>
+            <p class="text-gray-400 font-medium">El torneo aun no ha comenzado</p>
+            <p class="text-gray-300 text-sm mt-1">Pronto se publicaran los cruces de la primera ronda</p>
+        </div>
+        {% endfor %}
+        </div>
+    </div>
+
+    <a href="{% url 'clasificacion' %}" class="btn btn-primary block w-full">
+        Ver clasificacion
+    </a>
+</div>
+{% endblock %}
