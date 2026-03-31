@@ -11,14 +11,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get(
     "SECRET_KEY",
-    "django-insecure-!x#dq&x4l8yuktc*-uq^hus2tu0jccei*u@gsr^x*xzil#6yff",
+    "3gHgux58E4_V5-OQpa2qlw0x3fYBVFsnl5Pqu3ks2eZ5ZAZ6VZIFDfCV2jDX1qIlC-c",
 )
 
-DEBUG = True  # TEMPORAL para diagnosticar error 500
+DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1", "yes")
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+ALLOWED_HOSTS = os.environ.get(
+    "ALLOWED_HOSTS",
+    "musdial.softyourproblems.com,localhost,127.0.0.1",
+).split(",")
 CSRF_TRUSTED_ORIGINS = [
-    origin for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",") if origin
+    origin for origin in os.environ.get(
+        "CSRF_TRUSTED_ORIGINS",
+        "https://musdial.softyourproblems.com",
+    ).split(",") if origin
 ]
 
 INSTALLED_APPS = [

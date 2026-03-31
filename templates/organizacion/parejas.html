@@ -2,34 +2,36 @@
 {% block title %}Parejas{% endblock %}
 
 {% block content %}
-{% with active_tab="parejas" %}{% endwith %}
 <div class="space-y-4">
     <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-black text-gray-900">Parejas</h1>
-        <a href="{% url 'org_pareja_crear' %}" class="btn btn-primary">+ Nueva pareja</a>
+        <h1 class="text-2xl font-bold">Parejas</h1>
+        <a href="{% url 'org_pareja_crear' %}" class="btn btn-primary btn-sm">+ Nueva pareja</a>
     </div>
 
-    <p class="text-sm text-gray-400">{{ parejas|length }} parejas registradas. Comparte el enlace privado con cada pareja para que puedan subir resultados.</p>
+    <p class="text-sm text-base-content/50">{{ parejas|length }} parejas registradas. Comparte el enlace privado con cada pareja.</p>
 
     <div class="space-y-2">
     {% for pareja in parejas %}
-    <div class="card py-4 flex items-center gap-4">
-        <div class="shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-mus-400 to-mus-600 flex items-center justify-center text-white text-xs font-black">
-            {{ forloop.counter }}
-        </div>
-        <div class="flex-1 min-w-0">
-            <p class="font-bold text-sm truncate">
-                {{ pareja.nombre }}
-                {% if not pareja.activa %}<span class="badge badge-red ml-1">Inactiva</span>{% endif %}
-            </p>
-            <p class="text-xs text-gray-400 truncate">{{ pareja.jugador1 }} &middot; {{ pareja.jugador2 }}</p>
-        </div>
-        <div class="shrink-0 flex items-center gap-2">
-            <button onclick="copiarEnlace('{{ request.scheme }}://{{ request.get_host }}/pareja/{{ pareja.token }}/', this)"
-                    class="btn btn-secondary text-xs !py-2 !px-3">
-                Copiar enlace
-            </button>
-            <a href="{% url 'org_pareja_editar' pareja.pk %}" class="btn btn-secondary text-xs !py-2 !px-3">Editar</a>
+    <div class="card bg-base-100 shadow">
+        <div class="card-body py-3 flex-row items-center gap-4">
+            <div class="avatar placeholder shrink-0">
+                <div class="bg-primary text-primary-content rounded-full w-10">
+                    <span class="text-xs font-bold">{{ forloop.counter }}</span>
+                </div>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="font-bold text-sm truncate">
+                    {{ pareja.nombre }}
+                    {% if pareja.grupo %}<span class="badge badge-ghost badge-xs ml-1">{{ pareja.grupo }}</span>{% endif %}
+                    {% if not pareja.activa %}<span class="badge badge-error badge-xs ml-1">Inactiva</span>{% endif %}
+                </p>
+                <p class="text-xs text-base-content/40 truncate">{{ pareja.jugador1 }} &middot; {{ pareja.jugador2 }}</p>
+            </div>
+            <div class="shrink-0 flex items-center gap-2">
+                <button onclick="copiarEnlace('{{ request.scheme }}://{{ request.get_host }}/pareja/{{ pareja.token }}/', this)"
+                        class="btn btn-outline btn-xs">Copiar enlace</button>
+                <a href="{% url 'org_pareja_editar' pareja.pk %}" class="btn btn-ghost btn-xs">Editar</a>
+            </div>
         </div>
     </div>
     {% endfor %}
@@ -41,10 +43,12 @@ function copiarEnlace(url, btn) {
     navigator.clipboard.writeText(url).then(() => {
         const original = btn.textContent;
         btn.textContent = 'Copiado!';
-        btn.classList.add('!bg-mus-100', '!text-mus-700', '!border-mus-200');
+        btn.classList.add('btn-success');
+        btn.classList.remove('btn-outline');
         setTimeout(() => {
             btn.textContent = original;
-            btn.classList.remove('!bg-mus-100', '!text-mus-700', '!border-mus-200');
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-outline');
         }, 2000);
     });
 }

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Partida creada - Musdial{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="text-center py-4">
+        <div class="badge badge-success badge-lg mb-3">Partida creada</div>
+        <h1 class="text-xl font-bold">{{ pareja_1.nombre }} vs {{ pareja_2.nombre }}</h1>
+        <p class="text-sm text-base-content/50 mt-1">{{ partida.piedras_objetivo }} piedras &middot; {{ partida.juegos_para_ganar }} juegos para ganar</p>
+    </div>
+
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+            <h2 class="card-title text-sm">Enlace de {{ pareja_1.nombre }}</h2>
+            <div class="flex gap-2">
+                <input type="text" id="link1" value="{{ request.scheme }}://{{ request.get_host }}/pareja/{{ pareja_1.token }}/" class="input input-bordered flex-1 text-sm" readonly>
+                <button onclick="copiar('link1', this)" class="btn btn-outline btn-sm">Copiar</button>
+            </div>
+            <a href="{% url 'panel_pareja' pareja_1.token %}" class="btn btn-primary btn-sm btn-block mt-1">Entrar como {{ pareja_1.nombre }}</a>
+        </div>
+    </div>
+
+    <div class="card bg-base-100 shadow">
+        <div class="card-body">
+            <h2 class="card-title text-sm">Enlace de {{ pareja_2.nombre }}</h2>
+            <div class="flex gap-2">
+                <input type="text" id="link2" value="{{ request.scheme }}://{{ request.get_host }}/pareja/{{ pareja_2.token }}/" class="input input-bordered flex-1 text-sm" readonly>
+                <button onclick="copiar('link2', this)" class="btn btn-outline btn-sm">Copiar</button>
+            </div>
+            <a href="{% url 'panel_pareja' pareja_2.token %}" class="btn btn-primary btn-sm btn-block mt-1">Entrar como {{ pareja_2.nombre }}</a>
+        </div>
+    </div>
+
+    <div class="alert">
+        <div>
+            <p class="font-bold text-sm">Como jugar:</p>
+            <ol class="text-xs text-base-content/60 mt-1 space-y-1 list-decimal list-inside">
+                <li>Manda cada enlace a su pareja por WhatsApp</li>
+                <li>Una pareja pulsa "Empezar partida", la otra confirma</li>
+                <li>Despues de cada juego, uno sube las piedras y el otro confirma</li>
+                <li>La partida se cierra sola al llegar a {{ partida.juegos_para_ganar }} juegos</li>
+            </ol>
+        </div>
+    </div>
+
+    <a href="{% url 'partida_libre' %}" class="btn btn-ghost btn-block">Crear otra partida</a>
+</div>
+
+<script>
+function copiar(id, btn) {
+    var input = document.getElementById(id);
+    navigator.clipboard.writeText(input.value).then(function() {
+        btn.textContent = 'Copiado!';
+        btn.classList.add('btn-success');
+        btn.classList.remove('btn-outline');
+        setTimeout(function() {
+            btn.textContent = 'Copiar';
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-outline');
+        }, 2000);
+    });
+}
+</script>
+{% endblock %}

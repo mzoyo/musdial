@@ -8,88 +8,89 @@
     <meta property="og:title" content="Musdial - Torneo de Mus">
     <meta property="og:description" content="{% block og_description %}Sigue el torneo de mus en directo{% endblock %}">
     <meta property="og:type" content="website">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4/dist/full.min.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        mus: {
-                            50: '#ecfdf5',
-                            100: '#d1fae5',
-                            200: '#a7f3d0',
-                            300: '#6ee7b7',
-                            400: '#34d399',
-                            500: '#10b981',
-                            600: '#059669',
-                            700: '#047857',
-                            800: '#065f46',
-                            900: '#064e3b',
-                            950: '#022c22',
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <style type="text/tailwindcss">
-        @layer utilities {
-            .btn {
-                @apply inline-flex items-center justify-center rounded-2xl px-6 py-4 text-lg font-bold text-center transition-all duration-200 active:scale-95 select-none;
-            }
-            .btn-primary {
-                @apply bg-gradient-to-b from-mus-500 to-mus-600 text-white shadow-lg shadow-mus-500/25 hover:shadow-xl hover:shadow-mus-500/30 hover:from-mus-400 hover:to-mus-500;
-            }
-            .btn-danger {
-                @apply bg-gradient-to-b from-red-400 to-red-500 text-white shadow-lg shadow-red-500/25 hover:shadow-xl hover:shadow-red-500/30;
-            }
-            .btn-secondary {
-                @apply bg-white text-gray-700 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50;
-            }
-            .card {
-                @apply bg-white rounded-3xl shadow-sm border border-gray-100 p-5;
-            }
-            .card-highlight {
-                @apply bg-white rounded-3xl shadow-md border-2 border-mus-200 p-5;
-            }
-            .badge {
-                @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold;
-            }
-            .badge-green { @apply bg-mus-100 text-mus-700; }
-            .badge-yellow { @apply bg-amber-100 text-amber-700; }
-            .badge-gray { @apply bg-gray-100 text-gray-500; }
-            .badge-red { @apply bg-red-100 text-red-600; }
-            .badge-blue { @apply bg-blue-100 text-blue-700; }
-        }
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Space Grotesk', system-ui, sans-serif; }
+
+        /* Colores optimizados para cada tema */
+        [data-theme="forest"] .score-win { color: #4ade80; }
+        [data-theme="forest"] .score-lose { color: #f87171; }
+        [data-theme="forest"] .score-muted { color: rgba(255,255,255,0.35); }
+        [data-theme="forest"] .game-row-win { background: rgba(74,222,128,0.15); }
+        [data-theme="forest"] .game-row-lose { background: rgba(248,113,113,0.15); }
+        [data-theme="forest"] .game-label-win { color: #4ade80; }
+        [data-theme="forest"] .game-label-lose { color: #f87171; }
+        [data-theme="forest"] .status-waiting { color: #fbbf24; }
+        [data-theme="forest"] .status-waiting-bg { border-color: rgba(251,191,36,0.4); }
+        [data-theme="forest"] .confirm-score-win { color: #4ade80; }
+        [data-theme="forest"] .confirm-score-muted { color: rgba(255,255,255,0.35); }
+
+        [data-theme="lemonade"] .score-win { color: #4d7c0f; }
+        [data-theme="lemonade"] .score-lose { color: #b91c1c; }
+        [data-theme="lemonade"] .score-muted { color: rgba(0,0,0,0.25); }
+        [data-theme="lemonade"] .game-row-win { background: rgba(77,124,15,0.12); }
+        [data-theme="lemonade"] .game-row-lose { background: rgba(185,28,28,0.1); }
+        [data-theme="lemonade"] .game-label-win { color: #4d7c0f; }
+        [data-theme="lemonade"] .game-label-lose { color: #b91c1c; }
+        [data-theme="lemonade"] .status-waiting { color: #a16207; }
+        [data-theme="lemonade"] .status-waiting-bg { border-color: #a16207; }
+        [data-theme="lemonade"] .confirm-score-win { color: #4d7c0f; }
+        [data-theme="lemonade"] .confirm-score-muted { color: rgba(0,0,0,0.25); }
     </style>
+    <script>
+        (function() {
+            var saved = localStorage.getItem('musdial-theme');
+            var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'forest' : 'lemonade');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
 </head>
-<body class="bg-gray-50/50 min-h-screen font-sans">
-    <header class="bg-gradient-to-r from-mus-800 via-mus-700 to-mus-800 text-white shadow-lg">
-        <div class="max-w-lg mx-auto px-4 py-4 flex items-center justify-between">
-            <a href="{% url 'inicio' %}" class="flex items-center gap-2">
-                <span class="text-3xl">&#127183;</span>
-                <span class="text-2xl font-black tracking-tight">MUSDIAL</span>
+<body class="min-h-screen bg-base-200">
+    <header class="navbar bg-base-300 shadow-lg px-4">
+        <div class="max-w-2xl mx-auto w-full flex items-center justify-between">
+            <a href="{% url 'inicio' %}" class="text-2xl font-bold tracking-tight text-primary">
+                MUSDIAL
             </a>
-            <nav class="flex gap-1">
-                <a href="{% url 'clasificacion' %}" class="px-3 py-2 rounded-xl text-sm font-medium text-white/80 hover:text-white hover:bg-white/10 transition-colors">
-                    Clasificacion
-                </a>
+            <nav class="flex gap-1 items-center">
+                <a href="{% url 'clasificacion' %}" class="btn btn-ghost btn-sm">Clasificacion</a>
+                <button onclick="toggleTheme()" class="btn btn-ghost btn-sm btn-square" aria-label="Cambiar tema">
+                    <svg id="icon-sun" class="w-5 h-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                    <svg id="icon-moon" class="w-5 h-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                    </svg>
+                </button>
             </nav>
         </div>
     </header>
 
-    <main class="max-w-lg mx-auto px-4 py-6 pb-20">
+    <main class="max-w-2xl mx-auto px-4 py-6 pb-20">
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="text-center text-gray-400 text-xs py-6 border-t border-gray-100 space-y-1">
-        <p>Musdial &copy; 2026</p>
-        <p>Si la pagina tarda en cargar la primera vez, espera unos segundos. El servidor se activa con la primera visita.</p>
+    <footer class="text-center text-base-content/40 text-xs py-6 border-t border-base-300">
+        Musdial &copy; 2026
     </footer>
+
+    <script>
+        function updateIcons() {
+            var theme = document.documentElement.getAttribute('data-theme');
+            document.getElementById('icon-sun').classList.toggle('hidden', theme !== 'forest');
+            document.getElementById('icon-moon').classList.toggle('hidden', theme !== 'lemonade');
+        }
+        function toggleTheme() {
+            var current = document.documentElement.getAttribute('data-theme');
+            var next = current === 'forest' ? 'lemonade' : 'forest';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('musdial-theme', next);
+            updateIcons();
+        }
+        updateIcons();
+    </script>
 </body>
 </html>

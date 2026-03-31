@@ -4,53 +4,91 @@
 
 {% block content %}
 <div class="space-y-6">
-    <a href="{% url 'panel_pareja' pareja.token %}" class="text-sm text-mus-600 font-medium hover:underline">&larr; Volver a tu panel</a>
+    <a href="{% url 'panel_pareja' pareja.token %}" class="link link-primary text-sm">&larr; Volver a tu panel</a>
 
     <div class="text-center">
-        <h1 class="text-xl font-black text-gray-900">Subir resultado</h1>
-        <p class="text-sm text-gray-400 mt-1">{{ partida.pareja_1 }} vs {{ partida.pareja_2 }}</p>
-        <p class="badge badge-gray mt-2">Marcador: {{ partida.marcador }}</p>
+        <h1 class="text-xl font-bold">Subir resultado</h1>
+        <p class="text-sm text-base-content/50 mt-1">{{ partida.pareja_1 }} vs {{ partida.pareja_2 }}</p>
+        <div class="badge badge-ghost mt-2">Marcador: {{ partida.marcador }}</div>
     </div>
 
     {% if error %}
-    <div class="card !bg-red-50 !border-red-200 border-2 text-center">
-        <p class="text-red-600 font-bold">{{ error }}</p>
+    <div class="alert alert-error">
+        <span>{{ error }}</span>
     </div>
     {% endif %}
 
-    <form method="post" class="space-y-4">
+    <form method="post" class="space-y-5" id="form-juego">
         {% csrf_token %}
+        <input type="hidden" name="ganador" id="ganador-input" value="">
+        <input type="hidden" name="piedras_perdedor" id="piedras-input" value="">
 
-        <div class="card text-center">
-            <label class="block mb-3">
-                <span class="text-xs text-gray-400 font-medium uppercase tracking-wider">Piedras de</span>
-                <span class="block text-lg font-black text-gray-900 mt-0.5">{{ partida.pareja_1 }}</span>
-            </label>
-            <input type="number" name="piedras_1" min="0" max="40" required
-                   placeholder="0"
-                   class="w-full text-center text-5xl font-black py-5 border-2 border-gray-200 rounded-2xl focus:border-mus-500 focus:ring-4 focus:ring-mus-500/10 focus:outline-none transition-all tabular-nums"
-                   inputmode="numeric">
+        <!-- Paso 1: Quien ha ganado -->
+        <div id="paso-1">
+            <p class="text-center text-sm text-base-content/50 mb-3">¿Quien ha ganado este juego?</p>
+            <div class="space-y-3">
+                <button type="button" onclick="seleccionarGanador('1', '{{ partida.pareja_1 }}', '{{ partida.pareja_2 }}')"
+                        class="btn btn-outline btn-block btn-lg text-lg">
+                    {{ partida.pareja_1 }}
+                </button>
+                <button type="button" onclick="seleccionarGanador('2', '{{ partida.pareja_2 }}', '{{ partida.pareja_1 }}')"
+                        class="btn btn-outline btn-block btn-lg text-lg">
+                    {{ partida.pareja_2 }}
+                </button>
+            </div>
         </div>
 
-        <div class="card text-center">
-            <label class="block mb-3">
-                <span class="text-xs text-gray-400 font-medium uppercase tracking-wider">Piedras de</span>
-                <span class="block text-lg font-black text-gray-900 mt-0.5">{{ partida.pareja_2 }}</span>
-            </label>
-            <input type="number" name="piedras_2" min="0" max="40" required
-                   placeholder="0"
-                   class="w-full text-center text-5xl font-black py-5 border-2 border-gray-200 rounded-2xl focus:border-mus-500 focus:ring-4 focus:ring-mus-500/10 focus:outline-none transition-all tabular-nums"
-                   inputmode="numeric">
+        <!-- Paso 2: Piedras del perdedor -->
+        <div id="paso-2" class="hidden space-y-4">
+            <div class="text-center">
+                <div class="badge badge-success mb-3">Gana: <span id="nombre-ganador"></span></div>
+            </div>
+
+            <div class="card bg-base-100 shadow">
+                <div class="card-body items-center text-center">
+                    <label class="block mb-2">
+                        <span class="text-xs text-base-content/50 uppercase tracking-wider">Piedras de</span>
+                        <span class="block text-lg font-bold mt-0.5" id="nombre-perdedor"></span>
+                    </label>
+                    <input type="number" id="piedras-field" min="0" max="{{ partida.piedras_objetivo|add:"-1" }}" required
+                           placeholder="0"
+                           class="input input-bordered input-lg w-full text-center text-4xl font-bold tabular-nums"
+                           inputmode="numeric">
+                    <p class="text-xs text-base-content/40 mt-2">Entre 0 y {{ partida.piedras_objetivo|add:"-1" }}</p>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block btn-lg">
+                Enviar resultado
+            </button>
+
+            <button type="button" onclick="volver()" class="btn btn-ghost btn-block btn-sm">
+                Cambiar ganador
+            </button>
         </div>
-
-        <p class="text-center text-xs text-gray-400 px-4">
-            El ganador del juego siempre tiene 40 piedras.
-            Tu rival tendra que confirmar este resultado.
-        </p>
-
-        <button type="submit" class="btn btn-primary block w-full text-xl">
-            Enviar resultado
-        </button>
     </form>
 </div>
+
+<script>
+function seleccionarGanador(num, ganador, perdedor) {
+    document.getElementById('ganador-input').value = num;
+    document.getElementById('nombre-ganador').textContent = ganador;
+    document.getElementById('nombre-perdedor').textContent = perdedor;
+    document.getElementById('paso-1').classList.add('hidden');
+    document.getElementById('paso-2').classList.remove('hidden');
+    document.getElementById('piedras-field').focus();
+}
+
+function volver() {
+    document.getElementById('paso-1').classList.remove('hidden');
+    document.getElementById('paso-2').classList.add('hidden');
+    document.getElementById('ganador-input').value = '';
+    document.getElementById('piedras-field').value = '';
+}
+
+document.getElementById('form-juego').addEventListener('submit', function(e) {
+    var piedras = parseInt(document.getElementById('piedras-field').value);
+    document.getElementById('piedras-input').value = piedras;
+});
+</script>
 {% endblock %}

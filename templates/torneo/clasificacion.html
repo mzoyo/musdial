@@ -5,72 +5,87 @@
 {% block content %}
 <div class="space-y-6">
     <div>
-        <a href="{% url 'inicio' %}" class="text-sm text-mus-600 font-medium hover:underline">&larr; Inicio</a>
-        <h1 class="text-2xl font-black text-gray-900 mt-1">Clasificacion por grupos</h1>
+        <a href="{% url 'inicio' %}" class="link link-primary text-sm">&larr; Inicio</a>
+        <h1 class="text-2xl font-bold mt-1">Clasificacion por grupos</h1>
     </div>
 
     {% for gd in grupos_data %}
-    <div class="card">
-        <div class="flex items-center gap-2 mb-3">
-            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-mus-400 to-mus-600 flex items-center justify-center text-white font-black text-sm">
-                {{ gd.grupo.nombre }}
+    <div class="card bg-base-100 shadow">
+        <div class="card-body py-4">
+            <div class="flex items-center gap-2 mb-1">
+                <div class="avatar placeholder">
+                    <div class="bg-primary text-primary-content rounded-full w-8">
+                        <span class="text-sm font-bold">{{ gd.grupo.nombre }}</span>
+                    </div>
+                </div>
+                <h2 class="font-bold">Grupo {{ gd.grupo.nombre }}</h2>
+                <a href="{% url 'grupo_detalle' gd.grupo.nombre %}" class="link link-primary text-xs ml-auto">Ver detalle</a>
             </div>
-            <h2 class="font-bold">Grupo {{ gd.grupo.nombre }}</h2>
-            <a href="{% url 'grupo_detalle' gd.grupo.nombre %}" class="text-xs text-mus-600 hover:underline ml-auto">Ver detalle</a>
-        </div>
-        <div class="grid grid-cols-12 gap-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider px-1 mb-1">
-            <div class="col-span-1">#</div>
-            <div class="col-span-5">Pareja</div>
-            <div class="col-span-2 text-center">Pts</div>
-            <div class="col-span-2 text-center">PG-PP</div>
-            <div class="col-span-2 text-center">DJ</div>
-        </div>
-        {% for entry in gd.tabla %}
-        <div class="grid grid-cols-12 gap-1 items-center py-2 px-1 rounded-lg
-            {% if entry.posicion <= 3 %}bg-mus-50{% elif entry.posicion == 4 %}bg-amber-50{% endif %}">
-            <div class="col-span-1 text-sm font-black {% if entry.posicion <= 3 %}text-mus-600{% elif entry.posicion == 4 %}text-amber-500{% else %}text-gray-300{% endif %}">
-                {{ entry.posicion }}
+            <div class="overflow-x-auto">
+                <table class="table table-sm">
+                    <thead>
+                        <tr class="text-base-content/50">
+                            <th>#</th>
+                            <th>Pareja</th>
+                            <th class="text-center">Pts</th>
+                            <th class="text-center">PG-PP</th>
+                            <th class="text-center">DJ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for entry in gd.tabla %}
+                    <tr class="{% if entry.posicion <= 3 %}bg-success/20{% elif entry.posicion == 4 %}bg-warning/20{% endif %}">
+                        <td class="font-bold {% if entry.posicion <= 3 %}text-success{% elif entry.posicion == 4 %}text-warning{% else %}text-base-content/30{% endif %}">
+                            {{ entry.posicion }}
+                        </td>
+                        <td class="font-bold">{{ entry.pareja.nombre }}</td>
+                        <td class="text-center text-lg font-bold">{{ entry.puntos }}</td>
+                        <td class="text-center text-base-content/60">{{ entry.pg }}-{{ entry.pp }}</td>
+                        <td class="text-center font-semibold {% if entry.dif_juegos > 0 %}text-success{% elif entry.dif_juegos < 0 %}text-error{% else %}text-base-content/30{% endif %}">
+                            {% if entry.dif_juegos > 0 %}+{% endif %}{{ entry.dif_juegos }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
             </div>
-            <div class="col-span-5 font-bold text-sm truncate">{{ entry.pareja.nombre }}</div>
-            <div class="col-span-2 text-center text-lg font-black">{{ entry.puntos }}</div>
-            <div class="col-span-2 text-center text-sm text-gray-500">{{ entry.pg }}-{{ entry.pp }}</div>
-            <div class="col-span-2 text-center text-sm font-semibold
-                {% if entry.dif_juegos > 0 %}text-mus-600{% elif entry.dif_juegos < 0 %}text-red-400{% else %}text-gray-300{% endif %}">
-                {% if entry.dif_juegos > 0 %}+{% endif %}{{ entry.dif_juegos }}
-            </div>
         </div>
-        {% endfor %}
     </div>
     {% empty %}
-    <div class="card text-center py-10">
-        <p class="text-4xl mb-3">&#128202;</p>
-        <p class="text-gray-400 font-medium">Aun no hay resultados</p>
+    <div class="card bg-base-100 shadow">
+        <div class="card-body items-center text-center py-10">
+            <p class="text-base-content/40 font-medium">Aun no hay resultados</p>
+        </div>
     </div>
     {% endfor %}
 
     {% if cuartos %}
-    <div class="card border-2 !border-amber-200">
-        <h2 class="font-bold text-amber-700 mb-3">Mejor cuarto</h2>
-        <p class="text-xs text-gray-400 mb-3">Los 4os clasificados de cada grupo. El mejor pasa a octavos.</p>
-        {% for entry in cuartos %}
-        <div class="flex items-center justify-between py-2 px-2 rounded-lg {% if forloop.first %}bg-amber-50{% endif %}">
-            <div class="flex items-center gap-2">
-                {% if forloop.first %}<span class="badge badge-yellow text-[10px]">Clasificado</span>{% endif %}
-                <span class="font-bold text-sm">{{ entry.pareja.nombre }}</span>
-                <span class="text-xs text-gray-400">(Grupo {{ entry.grupo.nombre }})</span>
+    <div class="card bg-base-100 shadow border-2 border-warning/30">
+        <div class="card-body py-4">
+            <h2 class="card-title text-warning">Mejor cuarto</h2>
+            <p class="text-xs text-base-content/50">Los 4os clasificados de cada grupo. El mejor pasa a octavos.</p>
+            {% for entry in cuartos %}
+            <div class="flex items-center justify-between py-2 px-2 rounded-lg {% if forloop.first %}bg-warning/20{% endif %}">
+                <div class="flex items-center gap-2">
+                    {% if forloop.first %}<div class="badge badge-warning badge-sm">Clasificado</div>{% endif %}
+                    <span class="font-bold text-sm">{{ entry.pareja.nombre }}</span>
+                    <span class="text-xs text-base-content/40">(Grupo {{ entry.grupo.nombre }})</span>
+                </div>
+                <div class="text-right">
+                    <span class="font-bold">{{ entry.puntos }} pts</span>
+                    <span class="text-xs text-base-content/40 ml-1">DJ: {% if entry.dif_juegos > 0 %}+{% endif %}{{ entry.dif_juegos }}</span>
+                </div>
             </div>
-            <div class="text-right">
-                <span class="font-black">{{ entry.puntos }} pts</span>
-                <span class="text-xs text-gray-400 ml-1">DJ: {% if entry.dif_juegos > 0 %}+{% endif %}{{ entry.dif_juegos }}</span>
-            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
     {% endif %}
 
-    <div class="card text-xs text-gray-400 space-y-1">
-        <p><strong class="text-gray-500">Pts</strong> Puntos &middot; <strong class="text-gray-500">PG-PP</strong> Partidas ganadas/perdidas &middot; <strong class="text-gray-500">DJ</strong> Diferencia de juegos</p>
-        <p><span class="inline-block w-2 h-2 rounded-full bg-mus-400 mr-1"></span> Top 3: clasificados directos &middot; <span class="inline-block w-2 h-2 rounded-full bg-amber-400 mr-1"></span> 4o: opcion a mejor cuarto</p>
+    <div class="card bg-base-100 shadow">
+        <div class="card-body py-4 text-xs text-base-content/50 space-y-1">
+            <p><strong>Pts</strong> Puntos &middot; <strong>PG-PP</strong> Partidas ganadas/perdidas &middot; <strong>DJ</strong> Diferencia de juegos</p>
+            <p><span class="badge badge-success badge-xs mr-1"></span> Top 3: clasificados directos &middot; <span class="badge badge-warning badge-xs mr-1"></span> 4o: opcion a mejor cuarto</p>
+        </div>
     </div>
 </div>
 {% endblock %}

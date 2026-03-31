@@ -6,7 +6,7 @@ from .models import Grupo, Pareja, Partida, Ronda
 
 # Calendario oficial del torneo
 JORNADAS = [
-    {"numero": 1, "inicio": "2026-03-21", "fin": "2026-04-05"},
+    {"numero": 1, "inicio": "2026-04-01", "fin": "2026-04-05"},
     {"numero": 2, "inicio": "2026-04-06", "fin": "2026-04-19"},
     {"numero": 3, "inicio": "2026-04-20", "fin": "2026-05-03"},
     {"numero": 4, "inicio": "2026-05-04", "fin": "2026-05-17"},
@@ -94,6 +94,42 @@ def _parse_date(date_str):
     return make_aware(datetime.strptime(date_str + " 12:00", "%Y-%m-%d %H:%M"))
 
 
+def actualizar_estados():
+    """
+    Actualiza automáticamente el estado de jornadas y eliminatorias
+    según la fecha actual y el estado de las partidas.
+
+    - Si hoy >= fecha_inicio de una jornada → EN_CURSO
+    - Si todas las partidas de una jornada están FINALIZADAS → COMPLETADA
+    - Si todas las jornadas clasificatorias están COMPLETADAS y hoy >= fecha octavos
+      → genera octavos automáticamente
+    - Mismo criterio para cuartos
+    """
+    from django.utils import timezone
+    ahora = timezone.now()
+
+    for ronda in Ronda.objects.all():
+        if ronda.estado == Ronda.Estado.PENDIENTE and ronda.fecha_inicio and ahora >= ronda.fecha_inicio:
+            ronda.estado = Ronda.Estado.EN_CURSO
+            ronda.save()
+
+        if ronda.estado == Ronda.Estado.EN_CURSO:
+            total = ronda.partidas.count()
+            finalizadas = ronda.partidas.filter(estado=Partida.Estado.FINALIZADA).count()
+            if total > 0 and total == finalizadas:
+                ronda.estado = Ronda.Estado.COMPLETADA
+                ronda.save()
+
+    # Auto-generar octavos si es el momento
+    clasificatorias = Ronda.objects.filter(fase=Ronda.Fase.CLASIFICATORIA)
+    if clasificatorias.exists() and not clasificatorias.filter(estado__in=[Ronda.Estado.PENDIENTE, Ronda.Estado.EN_CURSO]).exists():
+        # Todas las jornadas completadas
+        if not Ronda.objects.filter(fase=Ronda.Fase.OCTAVOS).exists():
+            octavos_fecha = _parse_date(ELIMINATORIAS[0]["inicio"])
+            if ahora >= octavos_fecha:
+                generar_eliminatorias()
+
+
 def generar_todas_las_partidas():
     """
     Genera 5 jornadas con los cruces oficiales del Excel.
@@ -106,7 +142,7 @@ def generar_todas_las_partidas():
         ronda = Ronda.objects.create(
             numero=jornada_info["numero"],
             fase=Ronda.Fase.CLASIFICATORIA,
-            estado=Ronda.Estado.EN_CURSO,
+            estado=Ronda.Estado.PENDIENTE,
             fecha_inicio=_parse_date(jornada_info["inicio"]),
             fecha_limite=_parse_date(jornada_info["fin"]),
         )

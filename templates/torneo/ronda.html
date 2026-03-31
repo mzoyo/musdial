@@ -5,46 +5,39 @@
 {% block content %}
 <div class="space-y-4">
     <div>
-        <a href="{% url 'inicio' %}" class="text-sm text-mus-600 font-medium hover:underline">&larr; Inicio</a>
-        <h1 class="text-2xl font-black text-gray-900 mt-1">{{ ronda }}</h1>
+        <a href="{% url 'inicio' %}" class="link link-primary text-sm">&larr; Inicio</a>
+        <h1 class="text-2xl font-bold mt-1">{{ ronda }}</h1>
         <div class="flex items-center gap-2 mt-1">
-            <span class="badge
-                {% if ronda.estado == 'completada' %}badge-green
-                {% elif ronda.estado == 'en_curso' %}badge-yellow
-                {% else %}badge-gray{% endif %}">
-                {{ ronda.get_estado_display }}
-            </span>
-            {% if ronda.fecha_limite %}
-            <span class="text-xs text-gray-400">Plazo: {{ ronda.fecha_limite|date:"d/m/Y H:i" }}</span>
+            {% if ronda.estado == 'completada' %}
+            <div class="badge badge-success badge-sm">Completada</div>
+            {% elif ronda.estado == 'en_curso' %}
+            <div class="badge badge-warning badge-sm">En curso</div>
+            {% else %}
+            <div class="badge badge-ghost badge-sm">Pendiente</div>
+            {% endif %}
+            {% if ronda.fecha_inicio and ronda.fecha_limite %}
+            <span class="text-xs text-base-content/40">{{ ronda.fecha_inicio|date:"d/m" }} - {{ ronda.fecha_limite|date:"d/m" }}</span>
             {% endif %}
         </div>
     </div>
 
-    <div class="space-y-3">
+    <div class="space-y-2">
     {% for partida in partidas %}
-    <a href="{% url 'partida_detalle' partida.pk %}" class="card block hover:shadow-md hover:border-gray-200 transition-all">
-        <div class="flex items-center gap-4">
+    <a href="{% url 'partida_detalle' partida.pk %}" class="card bg-base-100 shadow hover:shadow-lg transition-all">
+        <div class="card-body py-3 flex-row items-center gap-4">
             <div class="flex-1 min-w-0">
-                <p class="font-bold truncate {% if partida.ganador == partida.pareja_1 %}text-mus-700{% endif %}">
-                    {{ partida.pareja_1 }}
-                </p>
-                <p class="font-bold truncate {% if partida.ganador == partida.pareja_2 %}text-mus-700{% else %}text-gray-400{% endif %}">
-                    {{ partida.pareja_2 }}
-                </p>
+                <p class="font-bold truncate {% if partida.ganador == partida.pareja_1 %}text-primary{% endif %}">{{ partida.pareja_1 }}</p>
+                <p class="font-bold truncate {% if partida.ganador == partida.pareja_2 %}text-primary{% else %}text-base-content/40{% endif %}">{{ partida.pareja_2 }}</p>
             </div>
             <div class="text-right shrink-0">
                 {% if partida.ganador %}
-                <div>
-                    <p class="text-2xl font-black text-mus-600">{{ partida.marcador }}</p>
-                    <p class="text-[10px] text-mus-500 font-semibold">FINALIZADA</p>
-                </div>
+                <p class="text-2xl font-bold text-primary">{{ partida.marcador }}</p>
+                <p class="text-[10px] text-success">FINALIZADA</p>
                 {% elif partida.estado == "en_curso" %}
-                <div>
-                    <p class="text-2xl font-black text-amber-500">{{ partida.marcador }}</p>
-                    <p class="text-[10px] text-amber-500 font-semibold">EN JUEGO</p>
-                </div>
+                <p class="text-2xl font-bold text-warning">{{ partida.marcador }}</p>
+                <p class="text-[10px] text-warning">EN JUEGO</p>
                 {% else %}
-                <span class="badge badge-gray">Pendiente</span>
+                <div class="badge badge-ghost badge-sm">Pendiente</div>
                 {% endif %}
             </div>
         </div>

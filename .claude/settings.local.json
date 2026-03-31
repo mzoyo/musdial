@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(python -m venv venv)",
+      "Bash(source venv/Scripts/activate)",
+      "Bash(pip install:*)",
+      "Bash(python -m django --version)",
+      "Bash(django-admin startproject:*)",
+      "Bash(python manage.py startapp torneo)",
+      "Bash(python manage.py makemigrations torneo)",
+      "Bash(python manage.py migrate)",
+      "Bash(python -c \"import django; import os; os.environ[''DJANGO_SETTINGS_MODULE'']=''config.settings''; django.setup\\(\\); from django.contrib.auth.models import User; User.objects.create_superuser\\(''admin'', '''', ''admin''\\)\")",
+      "Bash(python manage.py check)",
+      "Bash(pkill -f \"manage.py runserver\")",
+      "Bash(python manage.py test torneo -v2)",
+      "Bash(python manage.py crear_demo)",
+      "Bash(python manage.py test torneo)",
+      "Bash(pip freeze:*)",
+      "Bash(python manage.py collectstatic --noinput)",
+      "Bash(gh auth:*)",
+      "Bash(git push:*)",
+      "WebFetch(domain:musdial.onrender.com)",
+      "Bash(python -c \":*)",
+      "Bash(python manage.py borrar_demo --si)",
+      "Bash(git reset:*)",
+      "Bash(git checkout:*)",
+      "Bash(python -c \"import torneo.tests\")",
+      "Bash(DJANGO_SETTINGS_MODULE=config.settings python manage.py test torneo -v2)",
+      "Bash(python manage.py cargar_torneo)",
+      "Bash(python manage.py shell -c \":*)",
+      "Bash(python manage.py runserver 0.0.0.0:8000)",
+      "Bash(curl -s -o /dev/null http://127.0.0.1:8000/)",
+      "Bash(curl:*)",
+      "Bash(python:*)",
+      "Bash(zip -r musdial_upload.zip config/ torneo/ templates/ staticfiles/ manage.py passenger_wsgi.py requirements.txt db.sqlite3 -x \"**/__pycache__/*\" \"**/*.pyc\" \"torneo/management/commands/crear_demo.py\")",
+      "Bash(pdflatex -interaction=nonstopmode musdial_reglamento.tex)"
+    ]
+  }
+}

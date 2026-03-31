@@ -5,89 +5,107 @@
 {% block content %}
 <div class="space-y-6">
     <div class="text-center py-6">
-        <h1 class="text-5xl font-black bg-gradient-to-r from-mus-600 to-mus-800 bg-clip-text text-transparent">MUSDIAL</h1>
-        <p class="text-gray-400 mt-2 text-sm font-medium">Torneo de Mus &middot; 25 parejas &middot; 5 grupos</p>
+        <h1 class="text-5xl font-bold text-primary tracking-tight">MUSDIAL</h1>
+        <p class="text-base-content/50 mt-2 text-sm">Torneo de Mus &middot; 25 parejas &middot; 5 grupos</p>
     </div>
 
+    <a href="{% url 'partida_libre' %}" class="btn btn-outline btn-block">
+        Partida libre
+    </a>
+
     {% if partidas_total > 0 %}
-    <div class="card text-center">
-        <p class="text-xs text-gray-400 font-medium uppercase tracking-wider mb-2">Fase de grupos</p>
-        <p class="text-3xl font-black text-gray-900">{{ partidas_finalizadas }}<span class="text-gray-300">/{{ partidas_total }}</span></p>
-        <p class="text-xs text-gray-400 mt-1">partidas completadas</p>
-        <div class="w-full bg-gray-100 rounded-full h-2 mt-3">
-            <div class="bg-gradient-to-r from-mus-400 to-mus-600 h-2 rounded-full transition-all" style="width: {% widthratio partidas_finalizadas partidas_total 100 %}%"></div>
+    <div class="card bg-base-100 shadow">
+        <div class="card-body items-center text-center py-5">
+            <p class="text-xs text-base-content/50 uppercase tracking-wider">Fase de grupos</p>
+            <p class="text-3xl font-bold">{{ partidas_finalizadas }}<span class="text-base-content/30">/{{ partidas_total }}</span></p>
+            <p class="text-xs text-base-content/50">partidas completadas</p>
+            <progress class="progress progress-primary w-full mt-2" value="{{ partidas_finalizadas }}" max="{{ partidas_total }}"></progress>
         </div>
     </div>
     {% endif %}
 
     {% if jornadas %}
-    <div class="card">
-        <h2 class="font-bold text-sm text-gray-400 uppercase tracking-wider mb-3">Jornadas</h2>
-        <div class="space-y-1">
-        {% for jornada in jornadas %}
-        <a href="{% url 'ronda_detalle' jornada.numero %}" class="flex justify-between items-center py-3 px-4 rounded-2xl hover:bg-gray-50 transition-colors">
-            <div>
-                <span class="font-medium text-sm">{{ jornada }}</span>
-                {% if jornada.fecha_inicio and jornada.fecha_limite %}
-                <span class="text-xs text-gray-400 ml-2">{{ jornada.fecha_inicio|date:"d/m" }} - {{ jornada.fecha_limite|date:"d/m" }}</span>
+    <div class="card bg-base-100 shadow">
+        <div class="card-body py-4">
+            <h2 class="card-title text-sm uppercase tracking-wider text-base-content/50">Jornadas</h2>
+            <div class="space-y-1">
+            {% for jornada in jornadas %}
+            <a href="{% url 'ronda_detalle' jornada.numero %}" class="flex justify-between items-center py-3 px-3 rounded-lg hover:bg-base-200 transition-colors">
+                <div>
+                    <span class="font-medium text-sm">{{ jornada }}</span>
+                    {% if jornada.fecha_inicio and jornada.fecha_limite %}
+                    <span class="text-xs text-base-content/40 ml-2">{{ jornada.fecha_inicio|date:"d/m" }} - {{ jornada.fecha_limite|date:"d/m" }}</span>
+                    {% endif %}
+                </div>
+                {% if jornada.estado == 'completada' %}
+                <div class="badge badge-success badge-sm">Completada</div>
+                {% elif jornada.estado == 'en_curso' %}
+                <div class="badge badge-warning badge-sm">En curso</div>
+                {% else %}
+                <div class="badge badge-ghost badge-sm">Pendiente</div>
                 {% endif %}
+            </a>
+            {% endfor %}
             </div>
-            <span class="badge {% if jornada.estado == 'completada' %}badge-green{% elif jornada.estado == 'en_curso' %}badge-yellow{% else %}badge-gray{% endif %}">
-                {{ jornada.get_estado_display }}
-            </span>
-        </a>
-        {% endfor %}
         </div>
     </div>
     {% endif %}
 
     <div class="grid grid-cols-1 gap-3">
     {% for grupo in grupos %}
-    <a href="{% url 'grupo_detalle' grupo.nombre %}" class="card hover:shadow-md hover:border-gray-200 transition-all">
-        <div class="flex items-center justify-between">
+    <a href="{% url 'grupo_detalle' grupo.nombre %}" class="card bg-base-100 shadow hover:shadow-lg transition-all">
+        <div class="card-body py-4 flex-row items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-mus-400 to-mus-600 flex items-center justify-center text-white font-black text-lg">
-                    {{ grupo.nombre }}
+                <div class="avatar placeholder">
+                    <div class="bg-primary text-primary-content rounded-full w-10">
+                        <span class="text-lg font-bold">{{ grupo.nombre }}</span>
+                    </div>
                 </div>
                 <div>
                     <p class="font-bold">Grupo {{ grupo.nombre }}</p>
-                    <p class="text-xs text-gray-400">{{ grupo.parejas.count }} parejas</p>
+                    <p class="text-xs text-base-content/50">{{ grupo.parejas.count }} parejas</p>
                 </div>
             </div>
-            <span class="text-gray-300 text-lg">&rsaquo;</span>
+            <span class="text-base-content/30">&rsaquo;</span>
         </div>
     </a>
     {% empty %}
-    <div class="card text-center py-10">
-        <p class="text-5xl mb-4">&#127183;</p>
-        <p class="text-lg font-bold text-gray-400">El torneo aun no ha comenzado</p>
+    <div class="card bg-base-100 shadow">
+        <div class="card-body items-center text-center py-10">
+            <p class="text-lg font-bold text-base-content/40">El torneo aun no ha comenzado</p>
+            <p class="text-sm text-base-content/30">Pronto se publicaran los grupos y los cruces</p>
+        </div>
     </div>
     {% endfor %}
     </div>
 
     {% if grupos %}
-    <a href="{% url 'clasificacion' %}" class="btn btn-primary block w-full">
+    <a href="{% url 'clasificacion' %}" class="btn btn-primary btn-block">
         Ver clasificacion completa
     </a>
     {% endif %}
 
     {% if rondas_elim %}
-    <div class="card">
-        <h2 class="font-bold text-sm text-gray-400 uppercase tracking-wider mb-3">Eliminatorias</h2>
-        <div class="space-y-1">
-        {% for ronda in rondas_elim %}
-        <a href="{% url 'ronda_detalle' ronda.numero %}" class="flex justify-between items-center py-3 px-4 rounded-2xl hover:bg-gray-50 transition-colors">
-            <div>
-                <span class="font-medium text-sm">{{ ronda }}</span>
-                {% if ronda.fecha_inicio and ronda.fecha_limite %}
-                <span class="text-xs text-gray-400 ml-2">{{ ronda.fecha_inicio|date:"d/m" }} - {{ ronda.fecha_limite|date:"d/m" }}</span>
+    <div class="card bg-base-100 shadow">
+        <div class="card-body py-4">
+            <h2 class="card-title text-sm uppercase tracking-wider text-base-content/50">Eliminatorias</h2>
+            {% for ronda in rondas_elim %}
+            <a href="{% url 'ronda_detalle' ronda.numero %}" class="flex justify-between items-center py-3 px-3 rounded-lg hover:bg-base-200 transition-colors">
+                <div>
+                    <span class="font-medium text-sm">{{ ronda }}</span>
+                    {% if ronda.fecha_inicio and ronda.fecha_limite %}
+                    <span class="text-xs text-base-content/40 ml-2">{{ ronda.fecha_inicio|date:"d/m" }} - {{ ronda.fecha_limite|date:"d/m" }}</span>
+                    {% endif %}
+                </div>
+                {% if ronda.estado == 'completada' %}
+                <div class="badge badge-success badge-sm">Completada</div>
+                {% elif ronda.estado == 'en_curso' %}
+                <div class="badge badge-warning badge-sm">En curso</div>
+                {% else %}
+                <div class="badge badge-ghost badge-sm">Pendiente</div>
                 {% endif %}
-            </div>
-            <span class="badge {% if ronda.estado == 'completada' %}badge-green{% elif ronda.estado == 'en_curso' %}badge-yellow{% else %}badge-gray{% endif %}">
-                {{ ronda.get_estado_display }}
-            </span>
-        </a>
-        {% endfor %}
+            </a>
+            {% endfor %}
         </div>
     </div>
     {% endif %}

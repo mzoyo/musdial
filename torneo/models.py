@@ -106,6 +106,7 @@ class Ronda(models.Model):
         SEMIFINAL = "semifinal", "Semifinal"
         TERCER_PUESTO = "tercer_puesto", "Tercer puesto"
         FINAL = "final", "Final"
+        AMISTOSO = "amistoso", "Amistoso"
 
     class Estado(models.TextChoices):
         PENDIENTE = "pendiente", "Pendiente"
@@ -139,7 +140,9 @@ class Partida(models.Model):
         EN_CURSO = "en_curso", "En curso"
         FINALIZADA = "finalizada", "Finalizada"
 
-    ronda = models.ForeignKey(Ronda, on_delete=models.CASCADE, related_name="partidas")
+    ronda = models.ForeignKey(
+        Ronda, on_delete=models.CASCADE, related_name="partidas", null=True, blank=True
+    )
     grupo = models.ForeignKey(
         Grupo, on_delete=models.SET_NULL, null=True, blank=True, related_name="partidas"
     )
@@ -166,6 +169,9 @@ class Partida(models.Model):
         blank=True,
         related_name="+",
     )
+    es_amistoso = models.BooleanField(default=False)
+    piedras_objetivo = models.PositiveIntegerField(default=40)
+    juegos_para_ganar = models.PositiveIntegerField(default=4)
     fecha_inicio = models.DateTimeField(blank=True, null=True)
     fecha_fin = models.DateTimeField(blank=True, null=True)
 
@@ -189,7 +195,10 @@ class Partida(models.Model):
         return f"{self.juegos_pareja_1()} - {self.juegos_pareja_2()}"
 
     def comprobar_ganador(self):
-        necesarios = self.ronda.juegos_necesarios
+        if self.es_amistoso:
+            necesarios = self.juegos_para_ganar
+        else:
+            necesarios = self.ronda.juegos_necesarios
         j1 = self.juegos_pareja_1()
         j2 = self.juegos_pareja_2()
         if j1 >= necesarios:

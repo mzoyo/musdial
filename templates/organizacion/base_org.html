@@ -4,73 +4,77 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Organizacion{% endblock %} - Musdial</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4/dist/full.min.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        mus: {
-                            50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0',
-                            300: '#6ee7b7', 400: '#34d399', 500: '#10b981',
-                            600: '#059669', 700: '#047857', 800: '#065f46',
-                            900: '#064e3b', 950: '#022c22',
-                        }
-                    },
-                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
-                }
-            }
-        }
-    </script>
-    <style type="text/tailwindcss">
-        @layer utilities {
-            .btn { @apply inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-bold text-center transition-all duration-200 active:scale-95 select-none gap-2; }
-            .btn-primary { @apply bg-gradient-to-b from-mus-500 to-mus-600 text-white shadow-lg shadow-mus-500/25 hover:from-mus-400 hover:to-mus-500; }
-            .btn-danger { @apply bg-gradient-to-b from-red-400 to-red-500 text-white shadow-lg shadow-red-500/25; }
-            .btn-secondary { @apply bg-white text-gray-700 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50; }
-            .btn-warning { @apply bg-gradient-to-b from-amber-400 to-amber-500 text-white shadow-lg shadow-amber-500/25; }
-            .card { @apply bg-white rounded-3xl shadow-sm border border-gray-100 p-6; }
-            .stat-card { @apply bg-white rounded-3xl shadow-sm border border-gray-100 p-5 text-center; }
-            .badge { @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold; }
-            .badge-green { @apply bg-mus-100 text-mus-700; }
-            .badge-yellow { @apply bg-amber-100 text-amber-700; }
-            .badge-gray { @apply bg-gray-100 text-gray-500; }
-            .badge-red { @apply bg-red-100 text-red-600; }
-            .input-field { @apply w-full px-4 py-3 border-2 border-gray-200 rounded-2xl text-sm font-medium focus:border-mus-500 focus:ring-4 focus:ring-mus-500/10 focus:outline-none transition-all; }
-            .nav-link { @apply px-4 py-2.5 rounded-xl text-sm font-medium transition-colors; }
-            .nav-link-active { @apply bg-white/15 text-white; }
-            .nav-link-inactive { @apply text-white/60 hover:text-white hover:bg-white/10; }
-        }
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Space Grotesk', system-ui, sans-serif; }
+
+        [data-theme="forest"] .score-win { color: #4ade80; }
+        [data-theme="forest"] .score-lose { color: #f87171; }
+        [data-theme="forest"] .status-waiting { color: #fbbf24; }
+        [data-theme="lemonade"] .score-win { color: #4d7c0f; }
+        [data-theme="lemonade"] .score-lose { color: #b91c1c; }
+        [data-theme="lemonade"] .status-waiting { color: #a16207; }
     </style>
+    <script>
+        (function() {
+            var saved = localStorage.getItem('musdial-theme');
+            var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'forest' : 'lemonade');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
 </head>
-<body class="bg-gray-50/50 min-h-screen font-sans">
-    <header class="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white shadow-xl">
-        <div class="max-w-5xl mx-auto px-4 py-3">
-            <div class="flex items-center justify-between">
+<body class="min-h-screen bg-base-200">
+    <header class="navbar bg-base-300 shadow-lg px-4">
+        <div class="max-w-5xl mx-auto w-full">
+            <div class="flex items-center justify-between w-full">
                 <div class="flex items-center gap-3">
-                    <span class="text-2xl">&#127183;</span>
-                    <div>
-                        <span class="text-lg font-black tracking-tight">MUSDIAL</span>
-                        <span class="badge bg-amber-500/20 text-amber-300 text-[10px] ml-2">ORGANIZACION</span>
-                    </div>
+                    <a href="{% url 'org_dashboard' %}" class="text-lg font-bold tracking-tight text-primary">MUSDIAL</a>
+                    <div class="badge badge-warning badge-sm">ORG</div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <a href="{% url 'inicio' %}" class="nav-link nav-link-inactive text-xs">Ver web</a>
-                    <a href="{% url 'org_logout' %}" class="nav-link nav-link-inactive text-xs">Salir</a>
+                <div class="flex items-center gap-1">
+                    <a href="{% url 'inicio' %}" class="btn btn-ghost btn-xs">Ver web</a>
+                    <button onclick="toggleTheme()" class="btn btn-ghost btn-xs btn-square" aria-label="Cambiar tema">
+                        <svg id="icon-sun-org" class="w-4 h-4 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                        <svg id="icon-moon-org" class="w-4 h-4 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                        </svg>
+                    </button>
+                    <a href="{% url 'org_logout' %}" class="btn btn-ghost btn-xs">Salir</a>
                 </div>
             </div>
-            <nav class="flex gap-1 mt-3 overflow-x-auto pb-1">
-                <a href="{% url 'org_dashboard' %}" class="nav-link {% if active_tab == 'dashboard' %}nav-link-active{% else %}nav-link-inactive{% endif %}">Dashboard</a>
-                <a href="{% url 'org_parejas' %}" class="nav-link {% if active_tab == 'parejas' %}nav-link-active{% else %}nav-link-inactive{% endif %}">Parejas</a>
-                <a href="{% url 'org_grupos' %}" class="nav-link {% if active_tab == 'grupos' %}nav-link-active{% else %}nav-link-inactive{% endif %}">Grupos</a>
-                <a href="{% url 'org_metricas' %}" class="nav-link {% if active_tab == 'metricas' %}nav-link-active{% else %}nav-link-inactive{% endif %}">Metricas</a>
-            </nav>
+            <div class="tabs tabs-boxed bg-base-200 mt-2 p-1">
+                <a href="{% url 'org_dashboard' %}" class="tab {% if active_tab == 'dashboard' %}tab-active{% endif %}">Dashboard</a>
+                <a href="{% url 'org_parejas' %}" class="tab {% if active_tab == 'parejas' %}tab-active{% endif %}">Parejas</a>
+                <a href="{% url 'org_grupos' %}" class="tab {% if active_tab == 'grupos' %}tab-active{% endif %}">Grupos</a>
+                <a href="{% url 'org_metricas' %}" class="tab {% if active_tab == 'metricas' %}tab-active{% endif %}">Metricas</a>
+                <a href="{% url 'org_partidas_libres' %}" class="tab {% if active_tab == 'libres' %}tab-active{% endif %}">Libres</a>
+            </div>
         </div>
     </header>
 
     <main class="max-w-5xl mx-auto px-4 py-6 pb-20">
         {% block content %}{% endblock %}
     </main>
+
+    <script>
+        function updateIcons() {
+            var theme = document.documentElement.getAttribute('data-theme');
+            document.getElementById('icon-sun-org').classList.toggle('hidden', theme !== 'forest');
+            document.getElementById('icon-moon-org').classList.toggle('hidden', theme !== 'lemonade');
+        }
+        function toggleTheme() {
+            var current = document.documentElement.getAttribute('data-theme');
+            var next = current === 'forest' ? 'lemonade' : 'forest';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('musdial-theme', next);
+            updateIcons();
+        }
+        updateIcons();
+    </script>
 </body>
 </html>

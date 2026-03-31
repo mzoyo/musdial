@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Partida libre - Musdial{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <a href="{% url 'inicio' %}" class="link link-primary text-sm">&larr; Inicio</a>
+
+    <div class="text-center">
+        <h1 class="text-2xl font-bold">Partida libre</h1>
+        <p class="text-sm text-base-content/50 mt-1">Crea una partida para probar o jugar con amigos</p>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-error">
+        <span>{{ error }}</span>
+    </div>
+    {% endif %}
+
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+
+        <div class="card bg-base-100 shadow">
+            <div class="card-body py-4">
+                <h2 class="card-title text-sm">Parejas</h2>
+                <div class="form-control">
+                    <label class="label"><span class="label-text text-xs uppercase tracking-wider">Nombre pareja 1</span></label>
+                    <input type="text" name="nombre_1" required class="input input-bordered" placeholder="Ej: Carlos - Alberto">
+                </div>
+                <div class="form-control">
+                    <label class="label"><span class="label-text text-xs uppercase tracking-wider">Nombre pareja 2</span></label>
+                    <input type="text" name="nombre_2" required class="input input-bordered" placeholder="Ej: Marcos - Eduardo">
+                </div>
+            </div>
+        </div>
+
+        <div class="card bg-base-100 shadow">
+            <div class="card-body py-4">
+                <h2 class="card-title text-sm">Configuracion</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label"><span class="label-text text-xs uppercase tracking-wider">Piedras por juego</span></label>
+                        <input type="number" name="piedras" value="40" min="10" max="100" class="input input-bordered text-center text-lg font-bold" inputmode="numeric">
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text text-xs uppercase tracking-wider">Juegos para ganar</span></label>
+                        <input type="number" name="juegos" value="4" min="1" max="10" class="input input-bordered text-center text-lg font-bold" inputmode="numeric">
+                    </div>
+                </div>
+                <p class="text-xs text-base-content/40 mt-1">Por defecto: 40 piedras, 4 juegos (igual que el torneo)</p>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg">
+            Crear partida
+        </button>
+    </form>
+</div>
+{% endblock %}

@@ -3,62 +3,66 @@
 
 {% block content %}
 <div class="space-y-6">
-    <h1 class="text-2xl font-black text-gray-900">Dashboard</h1>
+    <h1 class="text-2xl font-bold">Dashboard</h1>
 
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div class="stat-card">
-            <p class="text-3xl font-black text-mus-600">{{ parejas_count }}</p>
-            <p class="text-xs text-gray-400 font-medium mt-1">Parejas</p>
+    <div class="stats stats-vertical lg:stats-horizontal shadow w-full bg-base-100">
+        <div class="stat">
+            <div class="stat-title">Parejas</div>
+            <div class="stat-value text-primary">{{ parejas_count }}</div>
         </div>
-        <div class="stat-card">
-            <p class="text-3xl font-black text-gray-900">{{ grupos|length }}</p>
-            <p class="text-xs text-gray-400 font-medium mt-1">Grupos</p>
+        <div class="stat">
+            <div class="stat-title">Grupos</div>
+            <div class="stat-value">{{ grupos|length }}</div>
         </div>
-        <div class="stat-card">
-            <p class="text-3xl font-black text-gray-900">{{ partidas_finalizadas }}/{{ partidas_total }}</p>
-            <p class="text-xs text-gray-400 font-medium mt-1">Partidas</p>
+        <div class="stat">
+            <div class="stat-title">Partidas</div>
+            <div class="stat-value">{{ partidas_finalizadas }}/{{ partidas_total }}</div>
         </div>
-        <div class="stat-card">
-            <p class="text-3xl font-black {% if juegos_rechazados > 0 %}text-red-500{% else %}text-mus-600{% endif %}">{{ juegos_rechazados }}</p>
-            <p class="text-xs text-gray-400 font-medium mt-1">Rechazados</p>
+        <div class="stat">
+            <div class="stat-title">Rechazados</div>
+            <div class="stat-value {% if juegos_rechazados > 0 %}text-error{% else %}text-success{% endif %}">{{ juegos_rechazados }}</div>
         </div>
     </div>
 
     {% if partidas_total > 0 %}
-    <div class="card">
-        <p class="text-xs text-gray-400 font-medium uppercase tracking-wider mb-2">Progreso fase de grupos</p>
-        <div class="w-full bg-gray-100 rounded-full h-3">
-            <div class="bg-gradient-to-r from-mus-400 to-mus-600 h-3 rounded-full transition-all" style="width: {% widthratio partidas_finalizadas partidas_total 100 %}%"></div>
+    <div class="card bg-base-100 shadow">
+        <div class="card-body py-4">
+            <p class="text-xs text-base-content/50 uppercase tracking-wider mb-2">Progreso fase de grupos</p>
+            <progress class="progress progress-primary w-full" value="{{ partidas_finalizadas }}" max="{{ partidas_total }}"></progress>
+            <p class="text-xs text-base-content/40 mt-1">{{ partidas_finalizadas }} de {{ partidas_total }} partidas completadas</p>
         </div>
-        <p class="text-xs text-gray-400 mt-2">{{ partidas_finalizadas }} de {{ partidas_total }} partidas completadas</p>
     </div>
     {% endif %}
 
-    <div class="card">
-        <h2 class="font-bold text-sm text-gray-400 uppercase tracking-wider mb-4">Acciones rapidas</h2>
-        <div class="grid grid-cols-2 gap-3">
-            <a href="{% url 'org_parejas' %}" class="btn btn-secondary">Gestionar parejas</a>
-            <a href="{% url 'org_grupos' %}" class="btn btn-secondary">Ver grupos</a>
-            <a href="{% url 'org_metricas' %}" class="btn btn-secondary">Metricas</a>
-            <a href="{% url 'clasificacion' %}" class="btn btn-secondary">Clasificacion</a>
+    <div class="card bg-base-100 shadow">
+        <div class="card-body py-4">
+            <h2 class="card-title text-sm uppercase tracking-wider text-base-content/50">Acciones rapidas</h2>
+            <div class="grid grid-cols-2 gap-3 mt-2">
+                <a href="{% url 'org_parejas' %}" class="btn btn-outline btn-sm">Gestionar parejas</a>
+                <a href="{% url 'org_grupos' %}" class="btn btn-outline btn-sm">Ver grupos</a>
+                <a href="{% url 'org_metricas' %}" class="btn btn-outline btn-sm">Metricas</a>
+                <a href="{% url 'clasificacion' %}" class="btn btn-outline btn-sm">Clasificacion</a>
+            </div>
         </div>
     </div>
 
     {% if grupos %}
-    <div class="card">
-        <h2 class="font-bold text-sm text-gray-400 uppercase tracking-wider mb-4">Grupos</h2>
-        <div class="space-y-2">
-        {% for grupo in grupos %}
-        <a href="{% url 'org_grupo_detalle' grupo.pk %}" class="flex items-center justify-between py-3 px-4 rounded-2xl hover:bg-gray-50 transition-colors">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-mus-400 to-mus-600 flex items-center justify-center text-white font-black text-sm">
-                    {{ grupo.nombre }}
+    <div class="card bg-base-100 shadow">
+        <div class="card-body py-4">
+            <h2 class="card-title text-sm uppercase tracking-wider text-base-content/50">Grupos</h2>
+            {% for grupo in grupos %}
+            <a href="{% url 'org_grupo_detalle' grupo.pk %}" class="flex items-center justify-between py-3 px-3 rounded-lg hover:bg-base-200 transition-colors">
+                <div class="flex items-center gap-3">
+                    <div class="avatar placeholder">
+                        <div class="bg-primary text-primary-content rounded-full w-8">
+                            <span class="text-sm font-bold">{{ grupo.nombre }}</span>
+                        </div>
+                    </div>
+                    <span class="font-medium text-sm">Grupo {{ grupo.nombre }}</span>
+                    <span class="text-xs text-base-content/40">({{ grupo.parejas.count }} parejas)</span>
                 </div>
-                <span class="font-medium text-sm">Grupo {{ grupo.nombre }}</span>
-                <span class="text-xs text-gray-400">({{ grupo.parejas.count }} parejas)</span>
-            </div>
-        </a>
-        {% endfor %}
+            </a>
+            {% endfor %}
         </div>
     </div>
     {% endif %}

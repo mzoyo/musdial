@@ -13,6 +13,8 @@ urlpatterns = [
     path("grupos/", views_org.grupos_lista, name="org_grupos"),
     path("grupos/iniciar/", views_org.iniciar_torneo, name="org_iniciar_torneo"),
     path("grupos/<int:pk>/", views_org.grupo_detalle_org, name="org_grupo_detalle"),
+    path("jornadas/<int:pk>/completar/", views_org.completar_jornada, name="org_completar_jornada"),
     path("grupos/octavos/", views_org.generar_octavos, name="org_generar_octavos"),
     path("metricas/", views_org.metricas, name="org_metricas"),
+    path("partidas-libres/", views_org.partidas_libres, name="org_partidas_libres"),
 ]

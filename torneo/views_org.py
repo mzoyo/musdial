@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from .grupos import (
+    actualizar_estados,
     clasificacion_grupo,
     generar_eliminatorias,
     generar_todas_las_partidas,
@@ -15,6 +16,7 @@ from .models import Grupo, Juego, Pareja, Partida, Ronda
 
 @staff_member_required(login_url="/organizacion/login/")
 def dashboard(request):
+    actualizar_estados()
     grupos = Grupo.objects.prefetch_related("parejas").all()
     parejas_count = Pareja.objects.filter(activa=True).count()
     partidas_total = Partida.objects.filter(ronda__fase=Ronda.Fase.CLASIFICATORIA).count()
@@ -36,7 +38,7 @@ def dashboard(request):
 
 @staff_member_required(login_url="/organizacion/login/")
 def parejas_lista(request):
-    parejas = Pareja.objects.select_related("grupo").all()
+    parejas = Pareja.objects.select_related("grupo").filter(grupo__isnull=False)
     grupos = Grupo.objects.all()
     return render(request, "organizacion/parejas.html", {
         "parejas": parejas,
@@ -82,14 +84,18 @@ def pareja_editar(request, pk):
 
 @staff_member_required(login_url="/organizacion/login/")
 def grupos_lista(request):
+    actualizar_estados()
     grupos = Grupo.objects.prefetch_related("parejas").all()
+    jornadas = Ronda.objects.filter(fase=Ronda.Fase.CLASIFICATORIA)
     torneo_iniciado = Partida.objects.filter(ronda__fase=Ronda.Fase.CLASIFICATORIA).exists()
     puede_generar_eliminatorias = (
         torneo_iniciado
+        and not Ronda.objects.filter(estado=Ronda.Estado.EN_CURSO, fase=Ronda.Fase.CLASIFICATORIA).exists()
         and not Ronda.objects.filter(fase=Ronda.Fase.OCTAVOS).exists()
     )
     return render(request, "organizacion/grupos.html", {
         "grupos": grupos,
+        "jornadas": jornadas,
         "torneo_iniciado": torneo_iniciado,
         "puede_generar_eliminatorias": puede_generar_eliminatorias,
     })
@@ -100,6 +106,22 @@ def iniciar_torneo(request):
     if request.method == "POST":
         if not Partida.objects.filter(ronda__fase=Ronda.Fase.CLASIFICATORIA).exists():
             generar_todas_las_partidas()
+    return redirect("org_grupos")
+
+
+@staff_member_required(login_url="/organizacion/login/")
+def completar_jornada(request, pk):
+    if request.method == "POST":
+        ronda = get_object_or_404(Ronda, pk=pk, fase=Ronda.Fase.CLASIFICATORIA)
+        ronda.estado = Ronda.Estado.COMPLETADA
+        ronda.save()
+        # Activar la siguiente jornada pendiente
+        siguiente = Ronda.objects.filter(
+            fase=Ronda.Fase.CLASIFICATORIA, estado=Ronda.Estado.PENDIENTE
+        ).order_by("numero").first()
+        if siguiente:
+            siguiente.estado = Ronda.Estado.EN_CURSO
+            siguiente.save()
     return redirect("org_grupos")
 
 
@@ -150,4 +172,14 @@ def metricas(request):
         "partidas_rapidas": partidas_rapidas,
         "juegos_sospechosos": juegos_sospechosos,
         "juegos_rechazados": juegos_rechazados,
+    })
+
+
+@staff_member_required(login_url="/organizacion/login/")
+def partidas_libres(request):
+    partidas = Partida.objects.filter(
+        es_amistoso=True,
+    ).select_related("pareja_1", "pareja_2", "ganador").order_by("-fecha_fin", "-pk")
+    return render(request, "organizacion/partidas_libres.html", {
+        "partidas": partidas,
     })

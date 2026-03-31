@@ -3,75 +3,80 @@
 
 {% block content %}
 <div class="space-y-4">
-    <a href="{% url 'org_grupos' %}" class="text-sm text-mus-600 font-medium hover:underline">&larr; Grupos</a>
+    <a href="{% url 'org_grupos' %}" class="link link-primary text-sm">&larr; Grupos</a>
 
     <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-mus-400 to-mus-600 flex items-center justify-center text-white font-black text-xl">
-            {{ grupo.nombre }}
+        <div class="avatar placeholder">
+            <div class="bg-primary text-primary-content rounded-full w-12">
+                <span class="text-xl font-bold">{{ grupo.nombre }}</span>
+            </div>
         </div>
-        <h1 class="text-2xl font-black text-gray-900">Grupo {{ grupo.nombre }}</h1>
+        <h1 class="text-2xl font-bold">Grupo {{ grupo.nombre }}</h1>
     </div>
 
-    <!-- Tabla clasificacion -->
     {% if tabla %}
-    <div class="card">
-        <h2 class="font-bold text-sm text-gray-400 uppercase tracking-wider mb-3">Clasificacion</h2>
-        {% for entry in tabla %}
-        <div class="flex items-center justify-between py-2 px-2 rounded-lg
-            {% if entry.posicion <= 3 %}bg-mus-50{% elif entry.posicion == 4 %}bg-amber-50{% endif %}">
-            <div class="flex items-center gap-3">
-                <span class="text-sm font-black w-5 {% if entry.posicion <= 3 %}text-mus-600{% else %}text-gray-300{% endif %}">{{ entry.posicion }}</span>
-                <span class="font-bold text-sm">{{ entry.pareja.nombre }}</span>
-            </div>
-            <div class="flex items-center gap-4 text-sm">
-                <span class="font-black">{{ entry.puntos }} pts</span>
-                <span class="text-gray-400">{{ entry.pg }}V-{{ entry.pp }}D</span>
-                <span class="text-gray-400">DJ: {% if entry.dif_juegos > 0 %}+{% endif %}{{ entry.dif_juegos }}</span>
+    <div class="card bg-base-100 shadow">
+        <div class="card-body py-4">
+            <h2 class="card-title text-sm uppercase tracking-wider text-base-content/50">Clasificacion</h2>
+            <div class="overflow-x-auto">
+                <table class="table table-sm">
+                    <thead>
+                        <tr><th>#</th><th>Pareja</th><th class="text-center">Pts</th><th class="text-center">PG-PP</th><th class="text-center">DJ</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for entry in tabla %}
+                    <tr class="{% if entry.posicion <= 3 %}bg-success/20{% elif entry.posicion == 4 %}bg-warning/20{% endif %}">
+                        <td class="font-bold {% if entry.posicion <= 3 %}text-success{% else %}text-base-content/30{% endif %}">{{ entry.posicion }}</td>
+                        <td class="font-bold">{{ entry.pareja.nombre }}</td>
+                        <td class="text-center font-bold">{{ entry.puntos }}</td>
+                        <td class="text-center text-base-content/60">{{ entry.pg }}-{{ entry.pp }}</td>
+                        <td class="text-center font-semibold {% if entry.dif_juegos > 0 %}text-success{% elif entry.dif_juegos < 0 %}text-error{% endif %}">
+                            {% if entry.dif_juegos > 0 %}+{% endif %}{{ entry.dif_juegos }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
-        {% endfor %}
     </div>
     {% endif %}
 
-    <!-- Partidas -->
     <div class="space-y-2">
-    <h2 class="font-bold text-sm text-gray-400 uppercase tracking-wider px-1">Partidas</h2>
+    <h2 class="font-bold text-sm text-base-content/50 uppercase tracking-wider px-1">Partidas</h2>
     {% for partida in partidas %}
-    <div class="card py-4">
-        <div class="flex items-center gap-4">
+    <div class="card bg-base-100 shadow">
+        <div class="card-body py-3 flex-row items-center gap-4">
             <div class="shrink-0">
                 {% if partida.estado == "finalizada" %}
-                <div class="w-3 h-3 rounded-full bg-mus-500"></div>
+                <div class="badge badge-success badge-xs"></div>
                 {% elif partida.estado == "en_curso" %}
-                <span class="relative flex h-3 w-3">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
-                </span>
+                <span class="loading loading-ring loading-xs text-warning"></span>
                 {% else %}
-                <div class="w-3 h-3 rounded-full bg-gray-200"></div>
+                <div class="badge badge-ghost badge-xs"></div>
                 {% endif %}
             </div>
             <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2">
-                    <p class="font-bold text-sm truncate {% if partida.ganador == partida.pareja_1 %}text-mus-700{% endif %}">{{ partida.pareja_1 }}</p>
-                    <span class="text-gray-300 text-xs">vs</span>
-                    <p class="font-bold text-sm truncate {% if partida.ganador == partida.pareja_2 %}text-mus-700{% else %}text-gray-500{% endif %}">{{ partida.pareja_2 }}</p>
-                </div>
+                <p class="text-sm">
+                    <span class="font-bold {% if partida.ganador == partida.pareja_1 %}text-primary{% endif %}">{{ partida.pareja_1 }}</span>
+                    <span class="text-base-content/30 mx-1">vs</span>
+                    <span class="font-bold {% if partida.ganador == partida.pareja_2 %}text-primary{% else %}text-base-content/50{% endif %}">{{ partida.pareja_2 }}</span>
+                </p>
                 <div class="flex items-center gap-2 mt-1">
                     {% if partida.estado == "finalizada" %}
-                        <span class="badge badge-green">{{ partida.marcador }}</span>
+                    <div class="badge badge-success badge-sm">{{ partida.marcador }}</div>
                     {% elif partida.estado == "en_curso" %}
-                        <span class="badge badge-yellow">{{ partida.marcador }}</span>
+                    <div class="badge badge-warning badge-sm">{{ partida.marcador }}</div>
                     {% elif partida.inicio_solicitado_por %}
-                        <span class="badge badge-yellow">{{ partida.inicio_solicitado_por }} quiere empezar</span>
+                    <div class="badge badge-warning badge-sm">{{ partida.inicio_solicitado_por }} quiere empezar</div>
                     {% else %}
-                        <span class="badge badge-gray">Pendiente</span>
+                    <div class="badge badge-ghost badge-sm">Pendiente</div>
                     {% endif %}
                 </div>
             </div>
             <div class="shrink-0 text-right space-y-1">
-                <a href="/pareja/{{ partida.pareja_1.token }}/" class="text-[10px] text-mus-600 hover:underline block">{{ partida.pareja_1 }}</a>
-                <a href="/pareja/{{ partida.pareja_2.token }}/" class="text-[10px] text-mus-600 hover:underline block">{{ partida.pareja_2 }}</a>
+                <a href="/pareja/{{ partida.pareja_1.token }}/" class="link link-primary text-[10px] block">{{ partida.pareja_1 }}</a>
+                <a href="/pareja/{{ partida.pareja_2.token }}/" class="link link-primary text-[10px] block">{{ partida.pareja_2 }}</a>
             </div>
         </div>
     </div>

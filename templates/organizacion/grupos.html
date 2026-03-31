@@ -4,62 +4,89 @@
 {% block content %}
 <div class="space-y-6">
     <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-black text-gray-900">Grupos</h1>
-        <div class="flex gap-2">
-            {% if not torneo_iniciado %}
-            <form method="post" action="{% url 'org_iniciar_torneo' %}">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-primary"
-                        onclick="return confirm('¿Iniciar el torneo? Se generaran todas las partidas de la fase de grupos.')">
-                    Iniciar torneo
-                </button>
-            </form>
-            {% endif %}
-            {% if puede_generar_eliminatorias %}
-            <form method="post" action="{% url 'org_generar_octavos' %}">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-warning"
-                        onclick="return confirm('¿Generar octavos de final?')">
-                    Generar octavos
-                </button>
-            </form>
-            {% endif %}
-        </div>
+        <h1 class="text-2xl font-bold">Grupos y jornadas</h1>
+        {% if not torneo_iniciado %}
+        <form method="post" action="{% url 'org_iniciar_torneo' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary btn-sm"
+                    onclick="return confirm('¿Iniciar el torneo? Se generaran todas las partidas.')">
+                Iniciar torneo
+            </button>
+        </form>
+        {% endif %}
     </div>
 
     {% if not torneo_iniciado %}
-    <div class="card !bg-amber-50 !border-amber-200 border-2">
-        <p class="text-amber-700 text-sm font-medium">Asegurate de que todas las parejas estan asignadas a su grupo antes de iniciar el torneo. Una vez iniciado, se generan las 50 partidas automaticamente.</p>
+    <div class="alert alert-warning">
+        <span>Asegurate de que todas las parejas estan asignadas a su grupo antes de iniciar el torneo.</span>
     </div>
     {% endif %}
 
-    <div class="space-y-3">
-    {% for grupo in grupos %}
-    <div class="card">
-        <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-mus-400 to-mus-600 flex items-center justify-center text-white font-black text-lg">
-                    {{ grupo.nombre }}
-                </div>
+    <!-- Jornadas -->
+    {% if jornadas %}
+    <div class="card bg-base-100 shadow">
+        <div class="card-body py-4">
+            <h2 class="card-title text-sm uppercase tracking-wider text-base-content/50">Jornadas</h2>
+            <p class="text-xs text-base-content/40 mb-2">Las jornadas se activan y completan automaticamente segun sus fechas y los resultados de las partidas.</p>
+            {% for jornada in jornadas %}
+            <div class="flex items-center justify-between py-2 px-2 rounded-lg">
                 <div>
-                    <h3 class="font-bold">Grupo {{ grupo.nombre }}</h3>
-                    <p class="text-xs text-gray-400">{{ grupo.parejas.count }} parejas</p>
+                    <span class="font-medium text-sm">{{ jornada }}</span>
+                    {% if jornada.fecha_inicio and jornada.fecha_limite %}
+                    <span class="text-xs text-base-content/40 ml-2">{{ jornada.fecha_inicio|date:"d/m" }} - {{ jornada.fecha_limite|date:"d/m" }}</span>
+                    {% endif %}
+                </div>
+                <div class="flex items-center gap-2">
+                    {% if jornada.estado == 'completada' %}
+                    <div class="badge badge-success badge-sm">Completada</div>
+                    {% elif jornada.estado == 'en_curso' %}
+                    <div class="badge badge-warning badge-sm">En curso</div>
+                    <span class="text-xs text-base-content/40">
+                        {{ jornada.partidas.count }} partidas
+                    </span>
+                    {% else %}
+                    <div class="badge badge-ghost badge-sm">Pendiente</div>
+                    {% endif %}
                 </div>
             </div>
-            <a href="{% url 'org_grupo_detalle' grupo.pk %}" class="btn btn-secondary text-xs">Ver detalle</a>
+            {% endfor %}
         </div>
-        <div class="flex flex-wrap gap-2">
-        {% for pareja in grupo.parejas.all %}
-        <span class="badge badge-gray">{{ pareja.nombre }}</span>
-        {% empty %}
-        <span class="text-xs text-gray-400">Sin parejas asignadas</span>
-        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Grupos -->
+    <div class="space-y-3">
+    {% for grupo in grupos %}
+    <div class="card bg-base-100 shadow">
+        <div class="card-body py-4">
+            <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-3">
+                    <div class="avatar placeholder">
+                        <div class="bg-primary text-primary-content rounded-full w-10">
+                            <span class="text-lg font-bold">{{ grupo.nombre }}</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-bold">Grupo {{ grupo.nombre }}</h3>
+                        <p class="text-xs text-base-content/40">{{ grupo.parejas.count }} parejas</p>
+                    </div>
+                </div>
+                <a href="{% url 'org_grupo_detalle' grupo.pk %}" class="btn btn-ghost btn-xs">Ver detalle</a>
+            </div>
+            <div class="flex flex-wrap gap-2">
+            {% for pareja in grupo.parejas.all %}
+            <div class="badge badge-outline badge-sm">{{ pareja.nombre }}</div>
+            {% empty %}
+            <span class="text-xs text-base-content/40">Sin parejas asignadas</span>
+            {% endfor %}
+            </div>
         </div>
     </div>
     {% empty %}
-    <div class="card text-center py-10">
-        <p class="text-4xl mb-3">&#127183;</p>
-        <p class="text-gray-400 font-medium">No hay grupos creados</p>
+    <div class="card bg-base-100 shadow">
+        <div class="card-body items-center text-center py-10">
+            <p class="text-base-content/40">No hay grupos creados</p>
+        </div>
     </div>
     {% endfor %}
     </div>

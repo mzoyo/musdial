@@ -3,29 +3,29 @@
 
 {% block content %}
 <div class="space-y-6 max-w-md mx-auto">
-    <a href="{% url 'org_parejas' %}" class="text-sm text-mus-600 font-medium hover:underline">&larr; Parejas</a>
+    <a href="{% url 'org_parejas' %}" class="link link-primary text-sm">&larr; Parejas</a>
 
-    <h1 class="text-2xl font-black text-gray-900">
+    <h1 class="text-2xl font-bold">
         {% if pareja %}Editar pareja{% else %}Nueva pareja{% endif %}
     </h1>
 
     <form method="post" class="space-y-4">
         {% csrf_token %}
-        <div>
-            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Nombre de la pareja</label>
-            <input type="text" name="nombre" value="{{ pareja.nombre|default:'' }}" required class="input-field" placeholder="Ej: Bambel-Mora">
+        <div class="form-control">
+            <label class="label"><span class="label-text text-xs uppercase tracking-wider">Nombre de la pareja</span></label>
+            <input type="text" name="nombre" value="{{ pareja.nombre|default:'' }}" required class="input input-bordered" placeholder="Ej: Bambel-Mora">
         </div>
-        <div>
-            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Jugador 1</label>
-            <input type="text" name="jugador1" value="{{ pareja.jugador1|default:'' }}" required class="input-field" placeholder="Nombre completo">
+        <div class="form-control">
+            <label class="label"><span class="label-text text-xs uppercase tracking-wider">Jugador 1</span></label>
+            <input type="text" name="jugador1" value="{{ pareja.jugador1|default:'' }}" required class="input input-bordered" placeholder="Nombre completo">
         </div>
-        <div>
-            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Jugador 2</label>
-            <input type="text" name="jugador2" value="{{ pareja.jugador2|default:'' }}" required class="input-field" placeholder="Nombre completo">
+        <div class="form-control">
+            <label class="label"><span class="label-text text-xs uppercase tracking-wider">Jugador 2</span></label>
+            <input type="text" name="jugador2" value="{{ pareja.jugador2|default:'' }}" required class="input input-bordered" placeholder="Nombre completo">
         </div>
-        <div>
-            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Grupo</label>
-            <select name="grupo" class="input-field">
+        <div class="form-control">
+            <label class="label"><span class="label-text text-xs uppercase tracking-wider">Grupo</span></label>
+            <select name="grupo" class="select select-bordered">
                 <option value="">Sin grupo</option>
                 {% for grupo in grupos %}
                 <option value="{{ grupo.pk }}" {% if pareja.grupo_id == grupo.pk %}selected{% endif %}>
@@ -35,13 +35,14 @@
             </select>
         </div>
         {% if pareja %}
-        <div class="flex items-center gap-3 bg-gray-50 rounded-2xl p-4">
-            <input type="checkbox" name="activa" id="activa" {% if pareja.activa %}checked{% endif %}
-                   class="w-5 h-5 rounded border-gray-300 text-mus-600 focus:ring-mus-500">
-            <label for="activa" class="text-sm font-medium text-gray-700">Pareja activa</label>
+        <div class="form-control">
+            <label class="label cursor-pointer justify-start gap-3">
+                <input type="checkbox" name="activa" {% if pareja.activa %}checked{% endif %} class="checkbox checkbox-primary">
+                <span class="label-text">Pareja activa</span>
+            </label>
         </div>
         {% endif %}
-        <button type="submit" class="btn btn-primary w-full">
+        <button type="submit" class="btn btn-primary btn-block">
             {% if pareja %}Guardar cambios{% else %}Crear pareja{% endif %}
         </button>
     </form>
