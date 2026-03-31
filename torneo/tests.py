@@ -3,6 +3,7 @@ from django.utils import timezone
 
 from .grupos import (
     clasificacion_grupo,
+    generar_eliminatorias,
     generar_todas_las_partidas,
     obtener_mejor_cuarto,
 )
@@ -311,6 +312,68 @@ class ConfirmarJuegoViewTest(TestCase):
         self.partida.refresh_from_db()
         self.assertEqual(self.partida.estado, Partida.Estado.FINALIZADA)
         self.assertEqual(self.partida.ganador, self.p1)
+
+
+class EliminatoriasTest(TestCase):
+    def setUp(self):
+        """Crea 5 grupos con 5 parejas y resultados para generar clasificación."""
+        self.ronda = Ronda.objects.create(numero=1, estado=Ronda.Estado.COMPLETADA)
+        for letra in "ABCDE":
+            g = Grupo.objects.create(nombre=letra)
+            parejas = []
+            for i in range(5):
+                p = Pareja.objects.create(
+                    nombre=f"{letra}{i}", jugador1=f"J{letra}{i}a",
+                    jugador2=f"J{letra}{i}b", grupo=g,
+                )
+                parejas.append(p)
+            # Crear resultados: p0 gana a todos, p1 gana a p2-p4, p2 gana a p3-p4, etc.
+            for i in range(5):
+                for j in range(i + 1, 5):
+                    Partida.objects.create(
+                        ronda=self.ronda, grupo=g,
+                        pareja_1=parejas[i], pareja_2=parejas[j],
+                        estado=Partida.Estado.FINALIZADA, ganador=parejas[i],
+                    )
+
+    def test_genera_8_octavos(self):
+        ronda, partidas = generar_eliminatorias()
+        self.assertIsNotNone(ronda)
+        self.assertEqual(len(partidas), 8)
+        self.assertEqual(ronda.fase, Ronda.Fase.OCTAVOS)
+
+    def test_sin_cruces_mismo_grupo_en_octavos(self):
+        _, partidas = generar_eliminatorias()
+        for partida in partidas:
+            self.assertNotEqual(
+                partida.pareja_1.grupo_id,
+                partida.pareja_2.grupo_id,
+                f"Cruce del mismo grupo en octavos: {partida}",
+            )
+
+    def test_sin_cruces_mismo_grupo_en_cuartos(self):
+        """Verifica que en cada cuarto de cuadro (2 octavos) no hay equipos del mismo grupo."""
+        _, partidas = generar_eliminatorias()
+        # Partidas se generan en pares: [0,1], [2,3], [4,5], [6,7] = 4 cuartos
+        for i in range(0, 8, 2):
+            grupos_en_cuarto = {
+                partidas[i].pareja_1.grupo_id,
+                partidas[i].pareja_2.grupo_id,
+                partidas[i + 1].pareja_1.grupo_id,
+                partidas[i + 1].pareja_2.grupo_id,
+            }
+            self.assertEqual(
+                len(grupos_en_cuarto), 4,
+                f"Cuarto {i // 2 + 1} tiene equipos del mismo grupo",
+            )
+
+    def test_16_parejas_distintas(self):
+        _, partidas = generar_eliminatorias()
+        parejas_ids = set()
+        for p in partidas:
+            parejas_ids.add(p.pareja_1_id)
+            parejas_ids.add(p.pareja_2_id)
+        self.assertEqual(len(parejas_ids), 16)
 
 
 class VistasPublicasTest(TestCase):

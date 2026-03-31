@@ -132,29 +132,11 @@ def obtener_mejor_cuarto():
 
 def obtener_clasificados():
     """
-    Devuelve los 16 clasificados: top 3 de cada grupo + mejor 4o.
-    """
-    clasificados = []
-    for grupo in Grupo.objects.all():
-        tabla = clasificacion_grupo(grupo)
-        for entry in tabla[:3]:
-            entry["grupo"] = grupo
-            entry["via"] = f"Top 3 Grupo {grupo.nombre}"
-            clasificados.append(entry)
-
-    cuartos = obtener_mejor_cuarto()
-    if cuartos:
-        mejor = cuartos[0]
-        mejor["via"] = f"Mejor 4o (Grupo {mejor['grupo'].nombre})"
-        clasificados.append(mejor)
-
-    return clasificados
-
-
-def generar_eliminatorias():
-    """
-    Genera los octavos de final.
-    Seeding: 1os de grupo, luego 2os, luego 3os, luego mejor 4o.
+    Devuelve los 16 clasificados ordenados por seed:
+    Seeds 1-5: 1os de grupo (por puntos, dif juegos)
+    Seeds 6-10: 2os de grupo
+    Seeds 11-15: 3os de grupo
+    Seed 16: mejor 4o
     """
     primeros = []
     segundos = []
@@ -163,27 +145,84 @@ def generar_eliminatorias():
     for grupo in Grupo.objects.all():
         tabla = clasificacion_grupo(grupo)
         if len(tabla) >= 3:
+            tabla[0]["grupo"] = grupo
+            tabla[0]["via"] = f"1o Grupo {grupo.nombre}"
             primeros.append(tabla[0])
+            tabla[1]["grupo"] = grupo
+            tabla[1]["via"] = f"2o Grupo {grupo.nombre}"
             segundos.append(tabla[1])
+            tabla[2]["grupo"] = grupo
+            tabla[2]["via"] = f"3o Grupo {grupo.nombre}"
             terceros.append(tabla[2])
 
+    _sort_key = lambda x: (x["puntos"], x["dif_juegos"])
+    primeros.sort(key=_sort_key, reverse=True)
+    segundos.sort(key=_sort_key, reverse=True)
+    terceros.sort(key=_sort_key, reverse=True)
+
+    clasificados = primeros + segundos + terceros
+
     cuartos = obtener_mejor_cuarto()
-    mejor_cuarto = cuartos[0] if cuartos else None
+    if cuartos:
+        mejor = cuartos[0]
+        mejor["via"] = f"Mejor 4o (Grupo {mejor['grupo'].nombre})"
+        clasificados.append(mejor)
 
-    primeros.sort(key=lambda x: (x["puntos"], x["dif_juegos"]), reverse=True)
-    segundos.sort(key=lambda x: (x["puntos"], x["dif_juegos"]), reverse=True)
-    terceros.sort(key=lambda x: (x["puntos"], x["dif_juegos"]), reverse=True)
+    for i, entry in enumerate(clasificados):
+        entry["seed"] = i + 1
 
-    seeded = (
-        [e["pareja"] for e in primeros]
-        + [e["pareja"] for e in segundos]
-        + [e["pareja"] for e in terceros]
-    )
-    if mejor_cuarto:
-        seeded.append(mejor_cuarto["pareja"])
+    return clasificados
 
-    if len(seeded) < 16:
+
+def _asignar_cuartos(clasificados):
+    """
+    Reparte los 16 clasificados en 4 cuartos de cuadro (4 equipos cada uno).
+    Garantiza que no haya dos equipos del mismo grupo en el mismo cuarto.
+    Esto evita cruces del mismo grupo tanto en octavos como en cuartos.
+
+    Los equipos se asignan en orden de seed (mejor primero) al cuarto
+    con menos equipos que pueda aceptar su grupo.
+    """
+    quarters = [[] for _ in range(4)]
+    groups_in = [set() for _ in range(4)]
+
+    for entry in clasificados:
+        grupo_id = entry["pareja"].grupo_id
+        # Buscar cuarto con menos equipos que no tenga este grupo
+        candidates = [
+            (len(quarters[i]), i)
+            for i in range(4)
+            if len(quarters[i]) < 4 and grupo_id not in groups_in[i]
+        ]
+        if candidates:
+            candidates.sort()
+            _, q = candidates[0]
+            quarters[q].append(entry)
+            groups_in[q].add(grupo_id)
+
+    return quarters
+
+
+def generar_eliminatorias():
+    """
+    Genera los octavos de final con separación de grupos.
+
+    El cuadro se divide en 4 cuartos. Cada cuarto tiene 4 equipos de
+    grupos distintos, que se cruzan en 2 octavos. Los ganadores de cada
+    cuarto se enfrentan en cuartos de final.
+
+    Cuarto 1: Octavo 1 y 2 → Cuarto de final 1
+    Cuarto 2: Octavo 3 y 4 → Cuarto de final 2
+    Cuarto 3: Octavo 5 y 6 → Cuarto de final 3
+    Cuarto 4: Octavo 7 y 8 → Cuarto de final 4
+
+    Dentro de cada cuarto: mejor seed vs peor seed, 2o vs 3o.
+    """
+    clasificados = obtener_clasificados()
+    if len(clasificados) < 16:
         return None, []
+
+    quarters = _asignar_cuartos(clasificados)
 
     octavos_info = ELIMINATORIAS[0]
     ronda_octavos = Ronda.objects.create(
@@ -195,12 +234,21 @@ def generar_eliminatorias():
     )
 
     partidas = []
-    for i in range(8):
-        partida = Partida.objects.create(
+    for quarter in quarters:
+        # Ordenar por seed dentro del cuarto
+        quarter.sort(key=lambda x: x["seed"])
+        # Mejor seed vs peor seed
+        p1 = Partida.objects.create(
             ronda=ronda_octavos,
-            pareja_1=seeded[i],
-            pareja_2=seeded[15 - i],
+            pareja_1=quarter[0]["pareja"],
+            pareja_2=quarter[3]["pareja"],
         )
-        partidas.append(partida)
+        # 2o seed vs 3o seed
+        p2 = Partida.objects.create(
+            ronda=ronda_octavos,
+            pareja_1=quarter[1]["pareja"],
+            pareja_2=quarter[2]["pareja"],
+        )
+        partidas.extend([p1, p2])
 
     return ronda_octavos, partidas
