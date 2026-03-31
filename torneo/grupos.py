@@ -18,25 +18,86 @@ ELIMINATORIAS = [
     {"numero": 7, "fase": Ronda.Fase.CUARTOS, "inicio": "2026-06-08", "fin": "2026-06-14"},
 ]
 
-# Emparejamientos round-robin para 5 equipos (indices 0-4)
-# Cada jornada: 2 partidas, 1 equipo descansa
-ROUND_ROBIN_5 = [
-    [(0, 1), (2, 3)],  # Jornada 1 - descansa 4
-    [(0, 2), (1, 4)],  # Jornada 2 - descansa 3
-    [(0, 3), (2, 4)],  # Jornada 3 - descansa 1
-    [(0, 4), (1, 3)],  # Jornada 4 - descansa 2
-    [(1, 2), (3, 4)],  # Jornada 5 - descansa 0
-]
+# Cruces oficiales del torneo (del Excel).
+# Cada grupo tiene 10 partidas, organizadas en 5 jornadas de 2.
+# Los nombres deben coincidir exactamente con los de la BD.
+CRUCES = {
+    "A": [
+        # Jornada 1
+        ("Bambel-Mora", "Richi-Cuchu"),
+        ("Nule-Benito", "Isma-Juanillo"),
+        # Jornada 2
+        ("Bambel-Mora", "Nule-Benito"),
+        ("Richi-Cuchu", "Los nenes"),
+        # Jornada 3
+        ("Bambel-Mora", "Isma-Juanillo"),
+        ("Nule-Benito", "Los nenes"),
+        # Jornada 4
+        ("Bambel-Mora", "Los nenes"),
+        ("Isma-Juanillo", "Richi-Cuchu"),
+        # Jornada 5
+        ("Richi-Cuchu", "Nule-Benito"),
+        ("Isma-Juanillo", "Los nenes"),
+    ],
+    "B": [
+        ("Felipe-Eusebio", "Sece-Guti"),
+        ("Joselu-Seto", "Isay-Trigo"),
+        ("Felipe-Eusebio", "Joselu-Seto"),
+        ("Sece-Guti", "Parra-Laura"),
+        ("Felipe-Eusebio", "Isay-Trigo"),
+        ("Joselu-Seto", "Parra-Laura"),
+        ("Felipe-Eusebio", "Parra-Laura"),
+        ("Isay-Trigo", "Sece-Guti"),
+        ("Sece-Guti", "Joselu-Seto"),
+        ("Isay-Trigo", "Parra-Laura"),
+    ],
+    "C": [
+        ("Chimba-Mora", "Calorro-Higinio"),
+        ("Domingo-J.Miguel", "Pichon-J.Carlos"),
+        ("Chimba-Mora", "Domingo-J.Miguel"),
+        ("Calorro-Higinio", "Sonia-Kayo"),
+        ("Chimba-Mora", "Pichon-J.Carlos"),
+        ("Domingo-J.Miguel", "Sonia-Kayo"),
+        ("Chimba-Mora", "Sonia-Kayo"),
+        ("Pichon-J.Carlos", "Calorro-Higinio"),
+        ("Calorro-Higinio", "Domingo-J.Miguel"),
+        ("Pichon-J.Carlos", "Sonia-Kayo"),
+    ],
+    "D": [
+        ("Saul-Diego", "Carlos-Use"),
+        ("Luis-Angel", "Ruben-Coco"),
+        ("Saul-Diego", "Luis-Angel"),
+        ("Carlos-Use", "Felix-Peris"),
+        ("Saul-Diego", "Ruben-Coco"),
+        ("Luis-Angel", "Felix-Peris"),
+        ("Saul-Diego", "Felix-Peris"),
+        ("Ruben-Coco", "Carlos-Use"),
+        ("Carlos-Use", "Luis-Angel"),
+        ("Ruben-Coco", "Felix-Peris"),
+    ],
+    "E": [
+        ("Fano-Prilly", "Vindel-Pastor"),
+        ("Canamon-Canamin", "Jaro-Tonin"),
+        ("Fano-Prilly", "Canamon-Canamin"),
+        ("Vindel-Pastor", "Isra-Enrique"),
+        ("Fano-Prilly", "Jaro-Tonin"),
+        ("Canamon-Canamin", "Isra-Enrique"),
+        ("Fano-Prilly", "Isra-Enrique"),
+        ("Jaro-Tonin", "Vindel-Pastor"),
+        ("Vindel-Pastor", "Canamon-Canamin"),
+        ("Jaro-Tonin", "Isra-Enrique"),
+    ],
+}
 
 
 def _parse_date(date_str):
-    return make_aware(datetime.strptime(date_str, "%Y-%m-%d"))
+    return make_aware(datetime.strptime(date_str + " 12:00", "%Y-%m-%d %H:%M"))
 
 
 def generar_todas_las_partidas():
     """
-    Genera 5 jornadas con 2 partidas por grupo por jornada.
-    Total: 2 x 5 grupos x 5 jornadas = 50 partidas.
+    Genera 5 jornadas con los cruces oficiales del Excel.
+    2 partidas por grupo por jornada = 10 partidas por jornada = 50 total.
     """
     rondas = []
     todas_partidas = []
@@ -52,18 +113,23 @@ def generar_todas_las_partidas():
         rondas.append(ronda)
 
         jornada_idx = jornada_info["numero"] - 1
-        emparejamientos = ROUND_ROBIN_5[jornada_idx]
 
         for grupo in Grupo.objects.all():
-            parejas = list(grupo.parejas.filter(activa=True).order_by("pk"))
-            if len(parejas) < 5:
-                continue
-            for i, j in emparejamientos:
+            cruces_grupo = CRUCES.get(grupo.nombre, [])
+            # 2 partidas por jornada: indices jornada_idx*2 y jornada_idx*2+1
+            start = jornada_idx * 2
+            for offset in range(2):
+                idx = start + offset
+                if idx >= len(cruces_grupo):
+                    continue
+                nombre_1, nombre_2 = cruces_grupo[idx]
+                p1 = Pareja.objects.get(nombre=nombre_1, grupo=grupo)
+                p2 = Pareja.objects.get(nombre=nombre_2, grupo=grupo)
                 partida = Partida.objects.create(
                     ronda=ronda,
                     grupo=grupo,
-                    pareja_1=parejas[i],
-                    pareja_2=parejas[j],
+                    pareja_1=p1,
+                    pareja_2=p2,
                 )
                 todas_partidas.append(partida)
 

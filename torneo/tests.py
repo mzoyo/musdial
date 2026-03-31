@@ -29,26 +29,24 @@ class ParejaModelTest(TestCase):
 class GrupoTest(TestCase):
     def setUp(self):
         self.grupo = Grupo.objects.create(nombre="A")
+        nombres = ["Bambel-Mora", "Richi-Cuchu", "Nule-Benito", "Isma-Juanillo", "Los nenes"]
         self.parejas = []
-        for i in range(5):
+        for nombre in nombres:
             p = Pareja.objects.create(
-                nombre=f"Pareja {i+1}", jugador1=f"J{i}a", jugador2=f"J{i}b",
+                nombre=nombre, jugador1="J1", jugador2="J2",
                 grupo=self.grupo,
             )
             self.parejas.append(p)
 
     def test_generar_todas_las_partidas(self):
+        from torneo.management.commands.cargar_torneo import GRUPOS as GRUPOS_DATA
         for letra in "BCDE":
             g = Grupo.objects.create(nombre=letra)
-            for i in range(5):
-                Pareja.objects.create(
-                    nombre=f"{letra}{i}", jugador1=f"J{letra}{i}a",
-                    jugador2=f"J{letra}{i}b", grupo=g,
-                )
+            for nombre, j1, j2 in GRUPOS_DATA[letra]:
+                Pareja.objects.create(nombre=nombre, jugador1=j1, jugador2=j2, grupo=g)
         rondas, partidas = generar_todas_las_partidas()
-        self.assertEqual(len(partidas), 50)  # 10 x 5 grupos
-        self.assertEqual(len(rondas), 5)  # 5 jornadas
-        # 2 partidas por grupo por jornada = 10 por jornada
+        self.assertEqual(len(partidas), 50)
+        self.assertEqual(len(rondas), 5)
         for ronda in rondas:
             self.assertEqual(ronda.partidas.count(), 10)
 
@@ -317,17 +315,14 @@ class ConfirmarJuegoViewTest(TestCase):
 class EliminatoriasTest(TestCase):
     def setUp(self):
         """Crea 5 grupos con 5 parejas y resultados para generar clasificación."""
+        from torneo.management.commands.cargar_torneo import GRUPOS as GRUPOS_DATA
         self.ronda = Ronda.objects.create(numero=1, estado=Ronda.Estado.COMPLETADA)
         for letra in "ABCDE":
             g = Grupo.objects.create(nombre=letra)
             parejas = []
-            for i in range(5):
-                p = Pareja.objects.create(
-                    nombre=f"{letra}{i}", jugador1=f"J{letra}{i}a",
-                    jugador2=f"J{letra}{i}b", grupo=g,
-                )
+            for nombre, j1, j2 in GRUPOS_DATA[letra]:
+                p = Pareja.objects.create(nombre=nombre, jugador1=j1, jugador2=j2, grupo=g)
                 parejas.append(p)
-            # Crear resultados: p0 gana a todos, p1 gana a p2-p4, p2 gana a p3-p4, etc.
             for i in range(5):
                 for j in range(i + 1, 5):
                     Partida.objects.create(
