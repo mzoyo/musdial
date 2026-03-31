@@ -20,6 +20,27 @@
     </div>
     {% endif %}
 
+    {% if jornadas %}
+    <div class="card">
+        <h2 class="font-bold text-sm text-gray-400 uppercase tracking-wider mb-3">Jornadas</h2>
+        <div class="space-y-1">
+        {% for jornada in jornadas %}
+        <a href="{% url 'ronda_detalle' jornada.numero %}" class="flex justify-between items-center py-3 px-4 rounded-2xl hover:bg-gray-50 transition-colors">
+            <div>
+                <span class="font-medium text-sm">{{ jornada }}</span>
+                {% if jornada.fecha_inicio and jornada.fecha_limite %}
+                <span class="text-xs text-gray-400 ml-2">{{ jornada.fecha_inicio|date:"d/m" }} - {{ jornada.fecha_limite|date:"d/m" }}</span>
+                {% endif %}
+            </div>
+            <span class="badge {% if jornada.estado == 'completada' %}badge-green{% elif jornada.estado == 'en_curso' %}badge-yellow{% else %}badge-gray{% endif %}">
+                {{ jornada.get_estado_display }}
+            </span>
+        </a>
+        {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
     <div class="grid grid-cols-1 gap-3">
     {% for grupo in grupos %}
     <a href="{% url 'grupo_detalle' grupo.nombre %}" class="card hover:shadow-md hover:border-gray-200 transition-all">
@@ -40,7 +61,6 @@
     <div class="card text-center py-10">
         <p class="text-5xl mb-4">&#127183;</p>
         <p class="text-lg font-bold text-gray-400">El torneo aun no ha comenzado</p>
-        <p class="text-sm text-gray-300 mt-1">Pronto se publicaran los grupos y los cruces</p>
     </div>
     {% endfor %}
     </div>
@@ -57,7 +77,12 @@
         <div class="space-y-1">
         {% for ronda in rondas_elim %}
         <a href="{% url 'ronda_detalle' ronda.numero %}" class="flex justify-between items-center py-3 px-4 rounded-2xl hover:bg-gray-50 transition-colors">
-            <span class="font-medium text-sm">{{ ronda }}</span>
+            <div>
+                <span class="font-medium text-sm">{{ ronda }}</span>
+                {% if ronda.fecha_inicio and ronda.fecha_limite %}
+                <span class="text-xs text-gray-400 ml-2">{{ ronda.fecha_inicio|date:"d/m" }} - {{ ronda.fecha_limite|date:"d/m" }}</span>
+                {% endif %}
+            </div>
             <span class="badge {% if ronda.estado == 'completada' %}badge-green{% elif ronda.estado == 'en_curso' %}badge-yellow{% else %}badge-gray{% endif %}">
                 {{ ronda.get_estado_display }}
             </span>

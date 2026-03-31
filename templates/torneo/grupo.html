@@ -57,11 +57,17 @@
         </div>
     </div>
 
-    <!-- Partidas -->
+    <!-- Partidas por jornada -->
+    {% for jd in jornadas %}
     <div>
-        <h2 class="font-bold text-sm text-gray-400 uppercase tracking-wider mb-3 px-1">Partidas</h2>
+        <div class="flex items-center justify-between mb-2 px-1">
+            <h2 class="font-bold text-sm text-gray-400 uppercase tracking-wider">{{ jd.ronda }}</h2>
+            {% if jd.ronda.fecha_inicio and jd.ronda.fecha_limite %}
+            <span class="text-[10px] text-gray-400">{{ jd.ronda.fecha_inicio|date:"d/m" }} - {{ jd.ronda.fecha_limite|date:"d/m" }}</span>
+            {% endif %}
+        </div>
         <div class="space-y-2">
-        {% for partida in partidas %}
+        {% for partida in jd.partidas %}
         <a href="{% url 'partida_detalle' partida.pk %}" class="card block py-4 hover:shadow-md transition-all">
             <div class="flex items-center gap-4">
                 <div class="flex-1 min-w-0">
@@ -82,5 +88,6 @@
         {% endfor %}
         </div>
     </div>
+    {% endfor %}
 </div>
 {% endblock %}

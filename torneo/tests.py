@@ -3,7 +3,6 @@ from django.utils import timezone
 
 from .grupos import (
     clasificacion_grupo,
-    generar_partidas_grupo,
     generar_todas_las_partidas,
     obtener_mejor_cuarto,
 )
@@ -37,14 +36,6 @@ class GrupoTest(TestCase):
             )
             self.parejas.append(p)
 
-    def test_generar_partidas_grupo(self):
-        ronda = Ronda.objects.create(numero=1, estado=Ronda.Estado.EN_CURSO)
-        partidas = generar_partidas_grupo(self.grupo, ronda)
-        # 5 parejas = C(5,2) = 10 partidas
-        self.assertEqual(len(partidas), 10)
-        for p in partidas:
-            self.assertEqual(p.grupo, self.grupo)
-
     def test_generar_todas_las_partidas(self):
         for letra in "BCDE":
             g = Grupo.objects.create(nombre=letra)
@@ -53,9 +44,12 @@ class GrupoTest(TestCase):
                     nombre=f"{letra}{i}", jugador1=f"J{letra}{i}a",
                     jugador2=f"J{letra}{i}b", grupo=g,
                 )
-        ronda, partidas = generar_todas_las_partidas()
+        rondas, partidas = generar_todas_las_partidas()
         self.assertEqual(len(partidas), 50)  # 10 x 5 grupos
-        self.assertEqual(ronda.estado, Ronda.Estado.EN_CURSO)
+        self.assertEqual(len(rondas), 5)  # 5 jornadas
+        # 2 partidas por grupo por jornada = 10 por jornada
+        for ronda in rondas:
+            self.assertEqual(ronda.partidas.count(), 10)
 
     def test_clasificacion_grupo_sin_partidas(self):
         tabla = clasificacion_grupo(self.grupo)

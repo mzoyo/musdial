@@ -9,14 +9,15 @@ from .models import Grupo, Juego, Pareja, Partida, Ronda
 
 def inicio(request):
     grupos = Grupo.objects.prefetch_related("parejas").all()
+    jornadas = Ronda.objects.filter(fase=Ronda.Fase.CLASIFICATORIA)
     rondas_elim = Ronda.objects.exclude(fase=Ronda.Fase.CLASIFICATORIA)
-    # Contar partidas totales y finalizadas de la fase de grupos
     total = Partida.objects.filter(ronda__fase=Ronda.Fase.CLASIFICATORIA).count()
     finalizadas = Partida.objects.filter(
         ronda__fase=Ronda.Fase.CLASIFICATORIA, estado=Partida.Estado.FINALIZADA
     ).count()
     return render(request, "torneo/inicio.html", {
         "grupos": grupos,
+        "jornadas": jornadas,
         "rondas_elim": rondas_elim,
         "partidas_total": total,
         "partidas_finalizadas": finalizadas,
@@ -26,13 +27,16 @@ def inicio(request):
 def grupo_detalle(request, nombre):
     grupo = get_object_or_404(Grupo, nombre=nombre.upper())
     tabla = clasificacion_grupo(grupo)
-    partidas = Partida.objects.filter(
-        grupo=grupo, ronda__fase=Ronda.Fase.CLASIFICATORIA
-    ).select_related("pareja_1", "pareja_2", "ganador")
+    jornadas_data = []
+    for ronda in Ronda.objects.filter(fase=Ronda.Fase.CLASIFICATORIA):
+        partidas = Partida.objects.filter(
+            grupo=grupo, ronda=ronda
+        ).select_related("pareja_1", "pareja_2", "ganador")
+        jornadas_data.append({"ronda": ronda, "partidas": partidas})
     return render(request, "torneo/grupo.html", {
         "grupo": grupo,
         "tabla": tabla,
-        "partidas": partidas,
+        "jornadas": jornadas_data,
     })
 
 
@@ -83,7 +87,7 @@ def _get_partida_actual(pareja):
         estado__in=[Partida.Estado.PENDIENTE, Partida.Estado.EN_CURSO]
     ).select_related(
         "pareja_1", "pareja_2", "ronda", "inicio_solicitado_por"
-    ).first()
+    ).order_by("ronda__numero").first()
 
 
 def panel_pareja(request, token):

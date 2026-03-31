@@ -1,40 +1,73 @@
-from itertools import combinations
+from datetime import datetime
+
+from django.utils.timezone import make_aware
 
 from .models import Grupo, Pareja, Partida, Ronda
 
+# Calendario oficial del torneo
+JORNADAS = [
+    {"numero": 1, "inicio": "2026-03-21", "fin": "2026-04-05"},
+    {"numero": 2, "inicio": "2026-04-06", "fin": "2026-04-19"},
+    {"numero": 3, "inicio": "2026-04-20", "fin": "2026-05-03"},
+    {"numero": 4, "inicio": "2026-05-04", "fin": "2026-05-17"},
+    {"numero": 5, "inicio": "2026-05-18", "fin": "2026-05-31"},
+]
 
-def generar_partidas_grupo(grupo, ronda):
-    """
-    Genera todas las partidas round-robin para un grupo en una ronda dada.
-    5 parejas = 10 partidas por grupo.
-    """
-    parejas = list(grupo.parejas.filter(activa=True))
-    partidas = []
-    for p1, p2 in combinations(parejas, 2):
-        partida = Partida.objects.create(
-            ronda=ronda,
-            grupo=grupo,
-            pareja_1=p1,
-            pareja_2=p2,
-        )
-        partidas.append(partida)
-    return partidas
+ELIMINATORIAS = [
+    {"numero": 6, "fase": Ronda.Fase.OCTAVOS, "inicio": "2026-06-01", "fin": "2026-06-07"},
+    {"numero": 7, "fase": Ronda.Fase.CUARTOS, "inicio": "2026-06-08", "fin": "2026-06-14"},
+]
+
+# Emparejamientos round-robin para 5 equipos (indices 0-4)
+# Cada jornada: 2 partidas, 1 equipo descansa
+ROUND_ROBIN_5 = [
+    [(0, 1), (2, 3)],  # Jornada 1 - descansa 4
+    [(0, 2), (1, 4)],  # Jornada 2 - descansa 3
+    [(0, 3), (2, 4)],  # Jornada 3 - descansa 1
+    [(0, 4), (1, 3)],  # Jornada 4 - descansa 2
+    [(1, 2), (3, 4)],  # Jornada 5 - descansa 0
+]
+
+
+def _parse_date(date_str):
+    return make_aware(datetime.strptime(date_str, "%Y-%m-%d"))
 
 
 def generar_todas_las_partidas():
     """
-    Genera una ronda clasificatoria con todas las partidas de todos los grupos.
-    Total: 10 partidas x 5 grupos = 50 partidas.
+    Genera 5 jornadas con 2 partidas por grupo por jornada.
+    Total: 2 x 5 grupos x 5 jornadas = 50 partidas.
     """
-    ronda = Ronda.objects.create(
-        numero=1,
-        fase=Ronda.Fase.CLASIFICATORIA,
-        estado=Ronda.Estado.EN_CURSO,
-    )
-    partidas = []
-    for grupo in Grupo.objects.all():
-        partidas.extend(generar_partidas_grupo(grupo, ronda))
-    return ronda, partidas
+    rondas = []
+    todas_partidas = []
+
+    for jornada_info in JORNADAS:
+        ronda = Ronda.objects.create(
+            numero=jornada_info["numero"],
+            fase=Ronda.Fase.CLASIFICATORIA,
+            estado=Ronda.Estado.EN_CURSO,
+            fecha_inicio=_parse_date(jornada_info["inicio"]),
+            fecha_limite=_parse_date(jornada_info["fin"]),
+        )
+        rondas.append(ronda)
+
+        jornada_idx = jornada_info["numero"] - 1
+        emparejamientos = ROUND_ROBIN_5[jornada_idx]
+
+        for grupo in Grupo.objects.all():
+            parejas = list(grupo.parejas.filter(activa=True).order_by("pk"))
+            if len(parejas) < 5:
+                continue
+            for i, j in emparejamientos:
+                partida = Partida.objects.create(
+                    ronda=ronda,
+                    grupo=grupo,
+                    pareja_1=parejas[i],
+                    pareja_2=parejas[j],
+                )
+                todas_partidas.append(partida)
+
+    return rondas, todas_partidas
 
 
 def clasificacion_grupo(grupo):
@@ -68,7 +101,6 @@ def clasificacion_grupo(grupo):
         while j < len(tabla) and tabla[j]["puntos"] == tabla[i]["puntos"]:
             j += 1
         if j - i == 2:
-            # Solo 2 empatadas: enfrentamiento directo
             p1 = tabla[i]["pareja"]
             p2 = tabla[i + 1]["pareja"]
             if p1.enfrentamiento_directo(p2) < 0:
@@ -138,12 +170,10 @@ def generar_eliminatorias():
     cuartos = obtener_mejor_cuarto()
     mejor_cuarto = cuartos[0] if cuartos else None
 
-    # Ordenar dentro de cada bombo por puntos y dif juegos
     primeros.sort(key=lambda x: (x["puntos"], x["dif_juegos"]), reverse=True)
     segundos.sort(key=lambda x: (x["puntos"], x["dif_juegos"]), reverse=True)
     terceros.sort(key=lambda x: (x["puntos"], x["dif_juegos"]), reverse=True)
 
-    # Seeding: 1-5 primeros, 6-10 segundos, 11-15 terceros, 16 mejor cuarto
     seeded = (
         [e["pareja"] for e in primeros]
         + [e["pareja"] for e in segundos]
@@ -155,9 +185,13 @@ def generar_eliminatorias():
     if len(seeded) < 16:
         return None, []
 
+    octavos_info = ELIMINATORIAS[0]
     ronda_octavos = Ronda.objects.create(
-        numero=2,
-        fase=Ronda.Fase.OCTAVOS,
+        numero=octavos_info["numero"],
+        fase=octavos_info["fase"],
+        estado=Ronda.Estado.EN_CURSO,
+        fecha_inicio=_parse_date(octavos_info["inicio"]),
+        fecha_limite=_parse_date(octavos_info["fin"]),
     )
 
     partidas = []

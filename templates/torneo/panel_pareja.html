@@ -57,7 +57,10 @@
     <!-- Partida actual -->
     {% if partida_actual %}
     <div class="card">
-        <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Tu partida</h2>
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Tu partida</h2>
+            <span class="badge badge-gray">{{ partida_actual.ronda }}{% if partida_actual.ronda.fecha_limite %} &middot; Hasta {{ partida_actual.ronda.fecha_limite|date:"d/m" }}{% endif %}</span>
+        </div>
 
         <!-- Rival -->
         <div class="text-center mb-4">
