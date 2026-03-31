@@ -4,9 +4,10 @@ from . import views
 
 urlpatterns = [
     path("", views.inicio, name="inicio"),
+    path("grupo/<str:nombre>/", views.grupo_detalle, name="grupo_detalle"),
     path("clasificacion/", views.clasificacion, name="clasificacion"),
-    path("ronda/<int:numero>/", views.ronda_detalle, name="ronda_detalle"),
     path("partida/<int:pk>/", views.partida_detalle, name="partida_detalle"),
+    path("ronda/<int:numero>/", views.ronda_detalle, name="ronda_detalle"),
     # Panel privado de pareja
     path("pareja/<str:token>/", views.panel_pareja, name="panel_pareja"),
     path("pareja/<str:token>/iniciar/", views.solicitar_inicio, name="solicitar_inicio"),

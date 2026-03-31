@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from torneo.models import Juego, Pareja, Partida, Ronda
+from torneo.models import Grupo, Juego, Pareja, Partida, Ronda
 
 
 class Command(BaseCommand):
@@ -32,8 +32,10 @@ class Command(BaseCommand):
         Partida.objects.all().delete()
         Ronda.objects.all().delete()
         Pareja.objects.all().delete()
+        grupos = Grupo.objects.count()
+        Grupo.objects.all().delete()
 
         self.stdout.write(self.style.SUCCESS(
             f"Borrado: {juegos} juegos, {partidas} partidas, "
-            f"{rondas} rondas, {parejas} parejas."
+            f"{rondas} rondas, {parejas} parejas, {grupos} grupos."
         ))

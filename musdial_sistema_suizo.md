@@ -162,7 +162,46 @@ Eliminatorias: entre 1 y 2 semanas mas (dependiendo del ritmo).
 
 • *Hay que esperar entre rondas:* No se puede adelantar la partida de la ronda 3 si la ronda 2 no ha terminado. Esto se soluciona con el plazo maximo por ronda.
 • *Menos familiar:* La gente esta mas acostumbrada a los grupos. Habra que explicar el sistema antes de empezar. Para eso esta este documento.
-• *Requiere gestion centralizada:* Alguien tiene que calcular los emparejamientos tras cada ronda. Esto se puede hacer con una aplicacion o una hoja de calculo en 5 minutos.
+• *Requiere gestion centralizada:* Alguien tiene que calcular los emparejamientos tras cada ronda. Para eso tenemos la web del torneo, que lo hace automaticamente.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━
+
+*LA WEB DEL TORNEO*
+
+━━━━━━━━━━━━━━━━━━━━━━━━━
+
+El torneo tiene su propia web donde se puede seguir todo en directo:
+
+*https://musdial.onrender.com*
+
+*¿Que se puede ver en la web?*
+
+• La clasificacion general en tiempo real (puntos, Buchholz, diferencia de piedras)
+• Los cruces de cada ronda
+• Los resultados de cada partida juego a juego
+• El cuadro de eliminatorias cuando llegue la fase
+
+
+*¿Como se suben los resultados?*
+
+Cada pareja recibe un *enlace privado* unico. Con ese enlace acceden a su panel donde pueden:
+
+*1.* Ver su partida actual y quien es su rival.
+*2.* Pulsar *"Empezar partida"* cuando esten listos. El rival tiene que confirmar el inicio desde su enlace.
+*3.* Tras cada juego, una pareja pulsa *"Subir juego"* y mete las piedras de cada equipo (el ganador siempre tiene 40).
+*4.* El rival recibe una notificacion en su panel para *confirmar o rechazar* el resultado.
+*5.* Si confirma, el juego queda registrado. Si rechaza, se avisa a la organizacion.
+*6.* Cuando una pareja llega a 4 juegos ganados (o 6 en eliminatorias), la partida se cierra automaticamente.
+
+Todo queda registrado: piedras de cada juego, quien subio el resultado, quien lo confirmo, y la hora de todo. Esto nos da datos para poder detectar posibles trampas.
+
+
+*Formato de cada partida:*
+
+• Fase clasificatoria: al mejor de 7 juegos (gana la primera pareja en llegar a *4 juegos*)
+• Fase eliminatoria: al mejor de 11 juegos (gana la primera en llegar a *6 juegos*)
+• Cada juego se juega a *40 piedras*
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -173,10 +212,13 @@ Eliminatorias: entre 1 y 2 semanas mas (dependiendo del ritmo).
 
 • 26 parejas (numero par, nadie descansa)
 • 5 rondas de sistema suizo (13 partidas por ronda, todas las parejas juegan siempre)
+• Clasificatoria: al mejor de 7 juegos (primero en ganar 4)
+• Eliminatorias: al mejor de 11 juegos (primero en ganar 6)
+• Cada juego a 40 piedras
 • Victoria = 2 puntos, derrota = 0 puntos
 • Desempates: puntos, Buchholz, diferencia de piedras, piedras a favor
 • Las 16 mejores pasan a eliminatorias
 • Octavos, cuartos, semis y final
-• Final a mejor de 3 partidas
 • Duracion total estimada: 6-7 semanas
 • Total de partidas: 65 (clasificatoria) + 15 (eliminatorias) = *80 partidas*
+• Web del torneo: *https://musdial.onrender.com*

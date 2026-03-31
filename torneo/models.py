@@ -8,10 +8,23 @@ def generar_token():
     return secrets.token_urlsafe(8)
 
 
+class Grupo(models.Model):
+    nombre = models.CharField(max_length=1, unique=True)
+
+    class Meta:
+        ordering = ["nombre"]
+
+    def __str__(self):
+        return f"Grupo {self.nombre}"
+
+
 class Pareja(models.Model):
     nombre = models.CharField(max_length=100)
     jugador1 = models.CharField("Jugador 1", max_length=100)
     jugador2 = models.CharField("Jugador 2", max_length=100)
+    grupo = models.ForeignKey(
+        Grupo, on_delete=models.SET_NULL, null=True, blank=True, related_name="parejas"
+    )
     token = models.CharField(
         max_length=20, unique=True, default=generar_token, editable=False
     )
@@ -19,60 +32,70 @@ class Pareja(models.Model):
     fecha_registro = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["nombre"]
+        ordering = ["grupo__nombre", "nombre"]
         verbose_name_plural = "parejas"
 
     def __str__(self):
         return self.nombre
 
-    def victorias(self):
-        return self.partidas_ganadas.count()
+    def victorias_grupo(self):
+        return self.partidas_ganadas.filter(
+            ronda__fase=Ronda.Fase.CLASIFICATORIA
+        ).count()
 
-    def puntos(self):
-        return self.victorias() * 2
+    def puntos_grupo(self):
+        return self.victorias_grupo() * 2
 
-    def diferencia_piedras(self):
-        total_favor = 0
-        total_contra = 0
-        for juego in Juego.objects.filter(
-            partida__estado=Partida.Estado.FINALIZADA,
-            estado=Juego.Estado.CONFIRMADO,
-        ).filter(
-            models.Q(partida__pareja_1=self) | models.Q(partida__pareja_2=self)
-        ):
-            if juego.partida.pareja_1 == self:
-                total_favor += juego.piedras_1
-                total_contra += juego.piedras_2
-            else:
-                total_favor += juego.piedras_2
-                total_contra += juego.piedras_1
-        return total_favor - total_contra
-
-    def piedras_favor(self):
-        total = 0
-        for juego in Juego.objects.filter(
-            partida__estado=Partida.Estado.FINALIZADA,
-            estado=Juego.Estado.CONFIRMADO,
-        ).filter(
-            models.Q(partida__pareja_1=self) | models.Q(partida__pareja_2=self)
-        ):
-            if juego.partida.pareja_1 == self:
-                total += juego.piedras_1
-            else:
-                total += juego.piedras_2
-        return total
-
-    def buchholz(self):
-        rivales = set()
-        partidas = Partida.objects.filter(
-            estado=Partida.Estado.FINALIZADA
+    def partidas_jugadas_grupo(self):
+        return Partida.objects.filter(
+            ronda__fase=Ronda.Fase.CLASIFICATORIA,
+            estado=Partida.Estado.FINALIZADA,
         ).filter(
             models.Q(pareja_1=self) | models.Q(pareja_2=self)
-        )
-        for partida in partidas:
-            rival = partida.pareja_2 if partida.pareja_1 == self else partida.pareja_1
-            rivales.add(rival)
-        return sum(r.puntos() for r in rivales)
+        ).count()
+
+    def juegos_ganados_grupo(self):
+        total = 0
+        partidas = Partida.objects.filter(
+            ronda__fase=Ronda.Fase.CLASIFICATORIA,
+            estado=Partida.Estado.FINALIZADA,
+        ).filter(models.Q(pareja_1=self) | models.Q(pareja_2=self))
+        for p in partidas:
+            if p.pareja_1 == self:
+                total += p.juegos_pareja_1()
+            else:
+                total += p.juegos_pareja_2()
+        return total
+
+    def juegos_perdidos_grupo(self):
+        total = 0
+        partidas = Partida.objects.filter(
+            ronda__fase=Ronda.Fase.CLASIFICATORIA,
+            estado=Partida.Estado.FINALIZADA,
+        ).filter(models.Q(pareja_1=self) | models.Q(pareja_2=self))
+        for p in partidas:
+            if p.pareja_1 == self:
+                total += p.juegos_pareja_2()
+            else:
+                total += p.juegos_pareja_1()
+        return total
+
+    def diferencia_juegos(self):
+        return self.juegos_ganados_grupo() - self.juegos_perdidos_grupo()
+
+    def enfrentamiento_directo(self, otra):
+        partida = Partida.objects.filter(
+            ronda__fase=Ronda.Fase.CLASIFICATORIA,
+            estado=Partida.Estado.FINALIZADA,
+        ).filter(
+            (models.Q(pareja_1=self, pareja_2=otra))
+            | (models.Q(pareja_1=otra, pareja_2=self))
+        ).first()
+        if partida and partida.ganador == self:
+            return 1
+        elif partida and partida.ganador == otra:
+            return -1
+        return 0
 
 
 class Ronda(models.Model):
@@ -99,7 +122,9 @@ class Ronda(models.Model):
         ordering = ["numero"]
 
     def __str__(self):
-        return f"Ronda {self.numero} ({self.get_fase_display()})"
+        if self.fase == self.Fase.CLASIFICATORIA:
+            return f"Jornada {self.numero}"
+        return f"{self.get_fase_display()}"
 
     @property
     def juegos_necesarios(self):
@@ -115,6 +140,9 @@ class Partida(models.Model):
         FINALIZADA = "finalizada", "Finalizada"
 
     ronda = models.ForeignKey(Ronda, on_delete=models.CASCADE, related_name="partidas")
+    grupo = models.ForeignKey(
+        Grupo, on_delete=models.SET_NULL, null=True, blank=True, related_name="partidas"
+    )
     pareja_1 = models.ForeignKey(
         Pareja, on_delete=models.CASCADE, related_name="partidas_como_1"
     )
@@ -145,7 +173,7 @@ class Partida(models.Model):
         verbose_name_plural = "partidas"
 
     def __str__(self):
-        return f"{self.pareja_1} vs {self.pareja_2} (Ronda {self.ronda.numero})"
+        return f"{self.pareja_1} vs {self.pareja_2}"
 
     def juegos_pareja_1(self):
         return self.juegos.filter(

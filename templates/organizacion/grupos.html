@@ -1,0 +1,67 @@
+{% extends "organizacion/base_org.html" %}
+{% block title %}Grupos{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-black text-gray-900">Grupos</h1>
+        <div class="flex gap-2">
+            {% if not torneo_iniciado %}
+            <form method="post" action="{% url 'org_iniciar_torneo' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary"
+                        onclick="return confirm('¿Iniciar el torneo? Se generaran todas las partidas de la fase de grupos.')">
+                    Iniciar torneo
+                </button>
+            </form>
+            {% endif %}
+            {% if puede_generar_eliminatorias %}
+            <form method="post" action="{% url 'org_generar_octavos' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-warning"
+                        onclick="return confirm('¿Generar octavos de final?')">
+                    Generar octavos
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if not torneo_iniciado %}
+    <div class="card !bg-amber-50 !border-amber-200 border-2">
+        <p class="text-amber-700 text-sm font-medium">Asegurate de que todas las parejas estan asignadas a su grupo antes de iniciar el torneo. Una vez iniciado, se generan las 50 partidas automaticamente.</p>
+    </div>
+    {% endif %}
+
+    <div class="space-y-3">
+    {% for grupo in grupos %}
+    <div class="card">
+        <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-mus-400 to-mus-600 flex items-center justify-center text-white font-black text-lg">
+                    {{ grupo.nombre }}
+                </div>
+                <div>
+                    <h3 class="font-bold">Grupo {{ grupo.nombre }}</h3>
+                    <p class="text-xs text-gray-400">{{ grupo.parejas.count }} parejas</p>
+                </div>
+            </div>
+            <a href="{% url 'org_grupo_detalle' grupo.pk %}" class="btn btn-secondary text-xs">Ver detalle</a>
+        </div>
+        <div class="flex flex-wrap gap-2">
+        {% for pareja in grupo.parejas.all %}
+        <span class="badge badge-gray">{{ pareja.nombre }}</span>
+        {% empty %}
+        <span class="text-xs text-gray-400">Sin parejas asignadas</span>
+        {% endfor %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="card text-center py-10">
+        <p class="text-4xl mb-3">&#127183;</p>
+        <p class="text-gray-400 font-medium">No hay grupos creados</p>
+    </div>
+    {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -3,36 +3,56 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from .models import Juego, Pareja, Partida, Ronda
-from .swiss import calcular_clasificacion
+from .grupos import clasificacion_grupo, obtener_clasificados, obtener_mejor_cuarto
+from .models import Grupo, Juego, Pareja, Partida, Ronda
 
 
 def inicio(request):
-    rondas = Ronda.objects.all()
-    ronda_actual = rondas.filter(estado=Ronda.Estado.EN_CURSO).first()
+    grupos = Grupo.objects.prefetch_related("parejas").all()
+    rondas_elim = Ronda.objects.exclude(fase=Ronda.Fase.CLASIFICATORIA)
+    # Contar partidas totales y finalizadas de la fase de grupos
+    total = Partida.objects.filter(ronda__fase=Ronda.Fase.CLASIFICATORIA).count()
+    finalizadas = Partida.objects.filter(
+        ronda__fase=Ronda.Fase.CLASIFICATORIA, estado=Partida.Estado.FINALIZADA
+    ).count()
     return render(request, "torneo/inicio.html", {
-        "rondas": rondas,
-        "ronda_actual": ronda_actual,
+        "grupos": grupos,
+        "rondas_elim": rondas_elim,
+        "partidas_total": total,
+        "partidas_finalizadas": finalizadas,
+    })
+
+
+def grupo_detalle(request, nombre):
+    grupo = get_object_or_404(Grupo, nombre=nombre.upper())
+    tabla = clasificacion_grupo(grupo)
+    partidas = Partida.objects.filter(
+        grupo=grupo, ronda__fase=Ronda.Fase.CLASIFICATORIA
+    ).select_related("pareja_1", "pareja_2", "ganador")
+    return render(request, "torneo/grupo.html", {
+        "grupo": grupo,
+        "tabla": tabla,
+        "partidas": partidas,
     })
 
 
 def clasificacion(request):
-    tabla = calcular_clasificacion()
-    return render(request, "torneo/clasificacion.html", {"tabla": tabla})
-
-
-def ronda_detalle(request, numero):
-    ronda = get_object_or_404(Ronda, numero=numero)
-    partidas = ronda.partidas.select_related("pareja_1", "pareja_2", "ganador")
-    return render(request, "torneo/ronda.html", {
-        "ronda": ronda,
-        "partidas": partidas,
+    grupos_data = []
+    for grupo in Grupo.objects.all():
+        grupos_data.append({
+            "grupo": grupo,
+            "tabla": clasificacion_grupo(grupo),
+        })
+    cuartos = obtener_mejor_cuarto()
+    return render(request, "torneo/clasificacion.html", {
+        "grupos_data": grupos_data,
+        "cuartos": cuartos,
     })
 
 
 def partida_detalle(request, pk):
     partida = get_object_or_404(
-        Partida.objects.select_related("pareja_1", "pareja_2", "ganador", "ronda"),
+        Partida.objects.select_related("pareja_1", "pareja_2", "ganador", "ronda", "grupo"),
         pk=pk,
     )
     juegos = partida.juegos.filter(
@@ -44,14 +64,23 @@ def partida_detalle(request, pk):
     })
 
 
+def ronda_detalle(request, numero):
+    ronda = get_object_or_404(Ronda, numero=numero)
+    partidas = ronda.partidas.select_related("pareja_1", "pareja_2", "ganador")
+    return render(request, "torneo/ronda.html", {
+        "ronda": ronda,
+        "partidas": partidas,
+    })
+
+
 # --- Panel de pareja (token privado) ---
 
 
 def _get_partida_actual(pareja):
     return Partida.objects.filter(
-        ronda__estado=Ronda.Estado.EN_CURSO,
-    ).filter(
         Q(pareja_1=pareja) | Q(pareja_2=pareja)
+    ).filter(
+        estado__in=[Partida.Estado.PENDIENTE, Partida.Estado.EN_CURSO]
     ).select_related(
         "pareja_1", "pareja_2", "ronda", "inicio_solicitado_por"
     ).first()
@@ -61,7 +90,6 @@ def panel_pareja(request, token):
     pareja = get_object_or_404(Pareja, token=token)
     partida_actual = _get_partida_actual(pareja)
 
-    # Juegos pendientes de confirmar por esta pareja
     pendientes = Juego.objects.filter(
         estado=Juego.Estado.PENDIENTE_CONFIRMACION,
     ).exclude(
@@ -70,10 +98,18 @@ def panel_pareja(request, token):
         Q(partida__pareja_1=pareja) | Q(partida__pareja_2=pareja)
     ).select_related("partida__pareja_1", "partida__pareja_2")
 
+    # Partidas finalizadas de esta pareja
+    historial = Partida.objects.filter(
+        estado=Partida.Estado.FINALIZADA,
+    ).filter(
+        Q(pareja_1=pareja) | Q(pareja_2=pareja)
+    ).select_related("pareja_1", "pareja_2", "ganador").order_by("-fecha_fin")[:10]
+
     return render(request, "torneo/panel_pareja.html", {
         "pareja": pareja,
         "partida_actual": partida_actual,
         "pendientes": pendientes,
+        "historial": historial,
     })
 
 
@@ -86,11 +122,9 @@ def solicitar_inicio(request, token):
 
     if request.method == "POST":
         if partida.inicio_solicitado_por is None:
-            # Primera pareja solicita inicio
             partida.inicio_solicitado_por = pareja
             partida.save()
         elif partida.inicio_solicitado_por != pareja:
-            # La otra pareja confirma → partida en curso
             partida.estado = Partida.Estado.EN_CURSO
             partida.fecha_inicio = timezone.now()
             partida.save()
@@ -112,7 +146,6 @@ def subir_juego(request, token):
         except (ValueError, TypeError):
             piedras_1, piedras_2 = 0, 0
 
-        # Validar que exactamente una sea 40
         if (piedras_1 == 40) == (piedras_2 == 40):
             error = (
                 "Una de las dos parejas debe tener 40 piedras."
@@ -120,37 +153,28 @@ def subir_juego(request, token):
                 else "Las dos parejas no pueden tener 40 piedras."
             )
             return render(request, "torneo/subir_juego.html", {
-                "pareja": pareja,
-                "partida": partida,
-                "error": error,
+                "pareja": pareja, "partida": partida, "error": error,
             })
 
         if piedras_1 < 0 or piedras_2 < 0 or piedras_1 > 40 or piedras_2 > 40:
             return render(request, "torneo/subir_juego.html", {
-                "pareja": pareja,
-                "partida": partida,
+                "pareja": pareja, "partida": partida,
                 "error": "Las piedras deben estar entre 0 y 40.",
             })
 
         ganador = partida.pareja_1 if piedras_1 == 40 else partida.pareja_2
-
         ultimo = partida.juegos.order_by("-numero").first()
         numero = (ultimo.numero + 1) if ultimo else 1
 
         Juego.objects.create(
-            partida=partida,
-            numero=numero,
-            piedras_1=piedras_1,
-            piedras_2=piedras_2,
-            ganador_juego=ganador,
-            subido_por=pareja,
+            partida=partida, numero=numero,
+            piedras_1=piedras_1, piedras_2=piedras_2,
+            ganador_juego=ganador, subido_por=pareja,
         )
-
         return redirect("panel_pareja", token=token)
 
     return render(request, "torneo/subir_juego.html", {
-        "pareja": pareja,
-        "partida": partida,
+        "pareja": pareja, "partida": partida,
     })
 
 
@@ -181,6 +205,5 @@ def confirmar_juego(request, token, juego_id):
         return redirect("panel_pareja", token=token)
 
     return render(request, "torneo/confirmar_juego.html", {
-        "pareja": pareja,
-        "juego": juego,
+        "pareja": pareja, "juego": juego,
     })
