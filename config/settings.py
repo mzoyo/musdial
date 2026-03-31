@@ -14,7 +14,7 @@ SECRET_KEY = os.environ.get(
     "django-insecure-!x#dq&x4l8yuktc*-uq^hus2tu0jccei*u@gsr^x*xzil#6yff",
 )
 
-DEBUG = os.environ.get("DEBUG", "True").lower() in ("true", "1", "yes")
+DEBUG = True  # TEMPORAL para diagnosticar error 500
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 CSRF_TRUSTED_ORIGINS = [
