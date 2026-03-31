@@ -14,8 +14,8 @@ JORNADAS = [
 ]
 
 ELIMINATORIAS = [
-    {"numero": 6, "fase": Ronda.Fase.OCTAVOS, "inicio": "2026-06-01", "fin": "2026-06-07"},
-    {"numero": 7, "fase": Ronda.Fase.CUARTOS, "inicio": "2026-06-08", "fin": "2026-06-14"},
+    {"numero": 6, "fase": "octavos", "inicio": "2026-06-01", "fin": "2026-06-07"},
+    {"numero": 7, "fase": "cuartos", "inicio": "2026-06-08", "fin": "2026-06-14"},
 ]
 
 # Cruces oficiales del torneo (del Excel).
