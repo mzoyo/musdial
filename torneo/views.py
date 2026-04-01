@@ -116,7 +116,7 @@ def ronda_detalle(request, numero):
 
 
 def _get_partida_actual(pareja):
-    """Devuelve la partida activa (en curso o esperando confirmación de inicio)."""
+    """Devuelve la partida activa (en curso o esperando confirmacion de inicio)."""
     _select = ("pareja_1", "pareja_2", "ronda", "inicio_solicitado_por")
     # Partida amistosa activa
     amistosa = Partida.objects.filter(
@@ -135,7 +135,7 @@ def _get_partida_actual(pareja):
     ).select_related(*_select).first()
     if en_curso:
         return en_curso
-    # Partida con inicio solicitado (esperando confirmación del rival)
+    # Partida con inicio solicitado (esperando confirmacion del rival)
     con_inicio = Partida.objects.filter(
         Q(pareja_1=pareja) | Q(pareja_2=pareja),
         es_amistoso=False,
@@ -159,7 +159,7 @@ def _get_partidas_disponibles(pareja):
 
 
 def _get_partidas_futuras(pareja):
-    """Partidas de jornadas que aún no han empezado."""
+    """Partidas de jornadas que aun no han empezado."""
     return Partida.objects.filter(
         Q(pareja_1=pareja) | Q(pareja_2=pareja),
         es_amistoso=False,
@@ -237,7 +237,7 @@ def _contexto_partida(pareja, partida):
 
 
 def panel_pareja_parcial(request, token):
-    """Devuelve solo la sección activa del panel (para polling)."""
+    """Devuelve solo la seccion activa del panel (para polling)."""
     pareja = get_object_or_404(Pareja, token=token)
     actualizar_estados()
     partida_actual = _get_partida_actual(pareja)
@@ -326,7 +326,7 @@ def subir_juego(request, token):
         return redirect("panel_pareja", token=token)
 
     if request.method == "POST":
-        # Protección: no crear juego si ya hay uno pendiente de confirmar
+        # Proteccion: no crear juego si ya hay uno pendiente de confirmar
         hay_pendiente = partida.juegos.filter(
             estado=Juego.Estado.PENDIENTE_CONFIRMACION
         ).exists()

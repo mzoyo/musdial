@@ -96,13 +96,13 @@ def _parse_date(date_str):
 
 def actualizar_estados():
     """
-    Actualiza automáticamente el estado de jornadas y eliminatorias
-    según la fecha actual y el estado de las partidas.
+    Actualiza automaticamente el estado de jornadas y eliminatorias
+    segun la fecha actual y el estado de las partidas.
 
-    - Si hoy >= fecha_inicio de una jornada → EN_CURSO
-    - Si todas las partidas de una jornada están FINALIZADAS → COMPLETADA
-    - Si todas las jornadas clasificatorias están COMPLETADAS y hoy >= fecha octavos
-      → genera octavos automáticamente
+    - Si hoy >= fecha_inicio de una jornada > EN_CURSO
+    - Si todas las partidas de una jornada estan FINALIZADAS > COMPLETADA
+    - Si todas las jornadas clasificatorias estan COMPLETADAS y hoy >= fecha octavos
+      > genera octavos automaticamente
     - Mismo criterio para cuartos
     """
     from django.utils import timezone
@@ -174,7 +174,7 @@ def generar_todas_las_partidas():
 
 def clasificacion_grupo(grupo):
     """
-    Devuelve la clasificación de un grupo ordenada por:
+    Devuelve la clasificacion de un grupo ordenada por:
     1. Puntos (desc)
     2. Enfrentamiento directo
     3. Diferencia de juegos (desc)
@@ -307,16 +307,16 @@ def _asignar_cuartos(clasificados):
 
 def generar_eliminatorias():
     """
-    Genera los octavos de final con separación de grupos.
+    Genera los octavos de final con separacion de grupos.
 
     El cuadro se divide en 4 cuartos. Cada cuarto tiene 4 equipos de
     grupos distintos, que se cruzan en 2 octavos. Los ganadores de cada
     cuarto se enfrentan en cuartos de final.
 
-    Cuarto 1: Octavo 1 y 2 → Cuarto de final 1
-    Cuarto 2: Octavo 3 y 4 → Cuarto de final 2
-    Cuarto 3: Octavo 5 y 6 → Cuarto de final 3
-    Cuarto 4: Octavo 7 y 8 → Cuarto de final 4
+    Cuarto 1: Octavo 1 y 2 > Cuarto de final 1
+    Cuarto 2: Octavo 3 y 4 > Cuarto de final 2
+    Cuarto 3: Octavo 5 y 6 > Cuarto de final 3
+    Cuarto 4: Octavo 7 y 8 > Cuarto de final 4
 
     Dentro de cada cuarto: mejor seed vs peor seed, 2o vs 3o.
     """

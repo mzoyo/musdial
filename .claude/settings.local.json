@@ -37,7 +37,8 @@
       "Bash(zip -r musdial_upload.zip config/ torneo/ templates/ staticfiles/ manage.py passenger_wsgi.py requirements.txt db.sqlite3 -x \"**/__pycache__/*\" \"**/*.pyc\" \"torneo/management/commands/crear_demo.py\")",
       "Bash(pdflatex -interaction=nonstopmode musdial_reglamento.tex)",
       "Bash(zip musdial_codigo.zip templates/base.html templates/torneo/panel_pareja.html templates/torneo/panel_pareja_parcial.html templates/torneo/partida.html templates/torneo/subir_juego.html templates/torneo/confirmar_juego.html templates/torneo/inicio.html templates/torneo/grupo.html templates/torneo/clasificacion.html templates/torneo/ronda.html templates/torneo/partida_libre.html templates/torneo/partida_libre_creada.html templates/organizacion/base_org.html templates/organizacion/dashboard.html templates/organizacion/parejas.html templates/organizacion/pareja_form.html templates/organizacion/partidas_libres.html templates/organizacion/grupo_detalle.html templates/organizacion/grupos.html templates/organizacion/metricas.html templates/organizacion/login.html torneo/views.py torneo/views_org.py torneo/urls.py torneo/urls_org.py torneo/grupos.py torneo/models.py torneo/admin.py torneo/migrations/0004_partida_es_amistoso_partida_juegos_para_ganar_and_more.py config/settings.py passenger_wsgi.py)",
-      "Bash(ls *.zip *.backup *.md)"
+      "Bash(ls *.zip *.backup *.md)",
+      "Bash(grep -rn \"ó\\\\|á\\\\|é\\\\|í\\\\|ú\\\\|ñ\\\\|Ó\\\\|Á\\\\|É\\\\|Í\\\\|Ú\\\\|Ñ\" torneo/*.py config/*.py)"
     ]
   }
 }

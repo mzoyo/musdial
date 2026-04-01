@@ -24,6 +24,10 @@
             <input type="text" name="jugador2" value="{{ pareja.jugador2|default:'' }}" required class="input input-bordered" placeholder="Nombre completo">
         </div>
         <div class="form-control">
+            <label class="label"><span class="label-text text-xs uppercase tracking-wider">Telefono (WhatsApp)</span></label>
+            <input type="tel" name="telefono" value="{{ pareja.telefono|default:'' }}" class="input input-bordered" placeholder="34689695191 (sin + ni espacios)">
+        </div>
+        <div class="form-control">
             <label class="label"><span class="label-text text-xs uppercase tracking-wider">Grupo</span></label>
             <select name="grupo" class="select select-bordered">
                 <option value="">Sin grupo</option>

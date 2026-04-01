@@ -314,7 +314,7 @@ class ConfirmarJuegoViewTest(TestCase):
 
 class EliminatoriasTest(TestCase):
     def setUp(self):
-        """Crea 5 grupos con 5 parejas y resultados para generar clasificación."""
+        """Crea 5 grupos con 5 parejas y resultados para generar clasificacion."""
         from torneo.management.commands.cargar_torneo import GRUPOS as GRUPOS_DATA
         self.ronda = Ronda.objects.create(numero=1, estado=Ronda.Estado.COMPLETADA)
         for letra in "ABCDE":

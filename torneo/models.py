@@ -22,6 +22,7 @@ class Pareja(models.Model):
     nombre = models.CharField(max_length=100)
     jugador1 = models.CharField("Jugador 1", max_length=100)
     jugador2 = models.CharField("Jugador 2", max_length=100)
+    telefono = models.CharField("Telefono WhatsApp", max_length=20, blank=True, default="")
     grupo = models.ForeignKey(
         Grupo, on_delete=models.SET_NULL, null=True, blank=True, related_name="parejas"
     )
@@ -213,7 +214,7 @@ class Partida(models.Model):
 
 class Juego(models.Model):
     class Estado(models.TextChoices):
-        PENDIENTE_CONFIRMACION = "pendiente", "Pendiente de confirmación"
+        PENDIENTE_CONFIRMACION = "pendiente", "Pendiente de confirmacion"
         CONFIRMADO = "confirmado", "Confirmado"
         RECHAZADO = "rechazado", "Rechazado"
 

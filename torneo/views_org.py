@@ -71,6 +71,7 @@ def pareja_editar(request, pk):
         pareja.nombre = request.POST.get("nombre", pareja.nombre).strip()
         pareja.jugador1 = request.POST.get("jugador1", pareja.jugador1).strip()
         pareja.jugador2 = request.POST.get("jugador2", pareja.jugador2).strip()
+        pareja.telefono = request.POST.get("telefono", pareja.telefono).strip()
         pareja.activa = request.POST.get("activa") == "on"
         grupo_id = request.POST.get("grupo")
         pareja.grupo = Grupo.objects.filter(pk=grupo_id).first() if grupo_id else None
@@ -192,7 +193,7 @@ def borrar_libre(request, pk):
         p1 = partida.pareja_1
         p2 = partida.pareja_2
         partida.delete()
-        # Borrar parejas huérfanas (sin grupo = de partida libre)
+        # Borrar parejas huerfanas (sin grupo = de partida libre)
         if p1.grupo is None and not Partida.objects.filter(Q(pareja_1=p1) | Q(pareja_2=p1)).exists():
             p1.delete()
         if p2.grupo is None and not Partida.objects.filter(Q(pareja_1=p2) | Q(pareja_2=p2)).exists():
