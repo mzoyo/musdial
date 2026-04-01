@@ -183,3 +183,31 @@ def partidas_libres(request):
     return render(request, "organizacion/partidas_libres.html", {
         "partidas": partidas,
     })
+
+
+@staff_member_required(login_url="/organizacion/login/")
+def borrar_libre(request, pk):
+    if request.method == "POST":
+        partida = get_object_or_404(Partida, pk=pk, es_amistoso=True)
+        p1 = partida.pareja_1
+        p2 = partida.pareja_2
+        partida.delete()
+        # Borrar parejas huérfanas (sin grupo = de partida libre)
+        if p1.grupo is None and not Partida.objects.filter(Q(pareja_1=p1) | Q(pareja_2=p1)).exists():
+            p1.delete()
+        if p2.grupo is None and not Partida.objects.filter(Q(pareja_1=p2) | Q(pareja_2=p2)).exists():
+            p2.delete()
+    return redirect("org_partidas_libres")
+
+
+@staff_member_required(login_url="/organizacion/login/")
+def borrar_todas_libres(request):
+    if request.method == "POST":
+        partidas = Partida.objects.filter(es_amistoso=True)
+        parejas_ids = set()
+        for p in partidas:
+            parejas_ids.add(p.pareja_1_id)
+            parejas_ids.add(p.pareja_2_id)
+        partidas.delete()
+        Pareja.objects.filter(pk__in=parejas_ids, grupo__isnull=True).delete()
+    return redirect("org_partidas_libres")

@@ -5,22 +5,30 @@
 <div class="space-y-6">
     <h1 class="text-2xl font-bold">Dashboard</h1>
 
-    <div class="stats stats-vertical lg:stats-horizontal shadow w-full bg-base-100">
-        <div class="stat">
-            <div class="stat-title">Parejas</div>
-            <div class="stat-value text-primary">{{ parejas_count }}</div>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="card bg-base-100 shadow">
+            <div class="card-body py-3 px-4 items-center text-center">
+                <p class="text-2xl font-bold text-primary">{{ parejas_count }}</p>
+                <p class="text-xs text-base-content/50">Parejas</p>
+            </div>
         </div>
-        <div class="stat">
-            <div class="stat-title">Grupos</div>
-            <div class="stat-value">{{ grupos|length }}</div>
+        <div class="card bg-base-100 shadow">
+            <div class="card-body py-3 px-4 items-center text-center">
+                <p class="text-2xl font-bold">{{ grupos|length }}</p>
+                <p class="text-xs text-base-content/50">Grupos</p>
+            </div>
         </div>
-        <div class="stat">
-            <div class="stat-title">Partidas</div>
-            <div class="stat-value">{{ partidas_finalizadas }}/{{ partidas_total }}</div>
+        <div class="card bg-base-100 shadow">
+            <div class="card-body py-3 px-4 items-center text-center">
+                <p class="text-2xl font-bold">{{ partidas_finalizadas }}/{{ partidas_total }}</p>
+                <p class="text-xs text-base-content/50">Partidas</p>
+            </div>
         </div>
-        <div class="stat">
-            <div class="stat-title">Rechazados</div>
-            <div class="stat-value {% if juegos_rechazados > 0 %}text-error{% else %}text-success{% endif %}">{{ juegos_rechazados }}</div>
+        <div class="card bg-base-100 shadow">
+            <div class="card-body py-3 px-4 items-center text-center">
+                <p class="text-2xl font-bold {% if juegos_rechazados > 0 %}text-error{% else %}text-success{% endif %}">{{ juegos_rechazados }}</p>
+                <p class="text-xs text-base-content/50">Rechazados</p>
+            </div>
         </div>
     </div>
 

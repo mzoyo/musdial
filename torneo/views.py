@@ -116,8 +116,9 @@ def ronda_detalle(request, numero):
 
 
 def _get_partida_actual(pareja):
+    """Devuelve la partida activa (en curso o esperando confirmación de inicio)."""
     _select = ("pareja_1", "pareja_2", "ronda", "inicio_solicitado_por")
-    # Primero partidas amistosas activas o recién finalizadas
+    # Partida amistosa activa
     amistosa = Partida.objects.filter(
         Q(pareja_1=pareja) | Q(pareja_2=pareja),
         es_amistoso=True,
@@ -126,27 +127,53 @@ def _get_partida_actual(pareja):
     ).select_related(*_select).first()
     if amistosa:
         return amistosa
-    # Partidas de torneo activas
-    torneo = Partida.objects.filter(
+    # Partida de torneo en curso
+    en_curso = Partida.objects.filter(
         Q(pareja_1=pareja) | Q(pareja_2=pareja),
         es_amistoso=False,
-        estado__in=[Partida.Estado.PENDIENTE, Partida.Estado.EN_CURSO],
-        ronda__estado=Ronda.Estado.EN_CURSO,
-    ).select_related(*_select).order_by("ronda__numero").first()
-    if torneo:
-        return torneo
-    # Si no hay activa, mostrar la última finalizada de la jornada en curso
-    reciente = Partida.objects.filter(
+        estado=Partida.Estado.EN_CURSO,
+    ).select_related(*_select).first()
+    if en_curso:
+        return en_curso
+    # Partida con inicio solicitado (esperando confirmación del rival)
+    con_inicio = Partida.objects.filter(
         Q(pareja_1=pareja) | Q(pareja_2=pareja),
-        estado=Partida.Estado.FINALIZADA,
-    ).select_related(*_select).order_by("-fecha_fin").first()
-    return reciente
+        es_amistoso=False,
+        estado=Partida.Estado.PENDIENTE,
+        inicio_solicitado_por__isnull=False,
+    ).select_related(*_select).first()
+    if con_inicio:
+        return con_inicio
+    return None
+
+
+def _get_partidas_disponibles(pareja):
+    """Partidas pendientes de jornadas activas (se pueden empezar)."""
+    return Partida.objects.filter(
+        Q(pareja_1=pareja) | Q(pareja_2=pareja),
+        es_amistoso=False,
+        estado=Partida.Estado.PENDIENTE,
+        inicio_solicitado_por__isnull=True,
+        ronda__estado=Ronda.Estado.EN_CURSO,
+    ).select_related("pareja_1", "pareja_2", "ronda").order_by("ronda__numero")
+
+
+def _get_partidas_futuras(pareja):
+    """Partidas de jornadas que aún no han empezado."""
+    return Partida.objects.filter(
+        Q(pareja_1=pareja) | Q(pareja_2=pareja),
+        es_amistoso=False,
+        estado=Partida.Estado.PENDIENTE,
+        ronda__estado=Ronda.Estado.PENDIENTE,
+    ).select_related("pareja_1", "pareja_2", "ronda").order_by("ronda__numero")
 
 
 def panel_pareja(request, token):
     actualizar_estados()
     pareja = get_object_or_404(Pareja, token=token)
     partida_actual = _get_partida_actual(pareja)
+    partidas_disponibles = _get_partidas_disponibles(pareja)
+    partidas_futuras = _get_partidas_futuras(pareja)
 
     # Juegos confirmados de la partida actual
     juegos_partida = []
@@ -184,6 +211,8 @@ def panel_pareja(request, token):
     ctx = {
         "pareja": pareja,
         "partida_actual": partida_actual,
+        "partidas_disponibles": partidas_disponibles,
+        "partidas_futuras": partidas_futuras,
         "juegos_partida": juegos_partida,
         "pendientes": pendientes,
         "esperando_confirmacion": esperando_confirmacion,
@@ -208,10 +237,12 @@ def _contexto_partida(pareja, partida):
 
 
 def panel_pareja_parcial(request, token):
-    """Devuelve solo la sección activa del panel (para HTMX polling)."""
+    """Devuelve solo la sección activa del panel (para polling)."""
     pareja = get_object_or_404(Pareja, token=token)
     actualizar_estados()
     partida_actual = _get_partida_actual(pareja)
+    partidas_disponibles = _get_partidas_disponibles(pareja)
+    partidas_futuras = _get_partidas_futuras(pareja)
 
     juegos_partida = []
     esperando_confirmacion = False
@@ -235,6 +266,8 @@ def panel_pareja_parcial(request, token):
     ctx = {
         "pareja": pareja,
         "partida_actual": partida_actual,
+        "partidas_disponibles": partidas_disponibles,
+        "partidas_futuras": partidas_futuras,
         "juegos_partida": juegos_partida,
         "pendientes": pendientes,
         "esperando_confirmacion": esperando_confirmacion,
@@ -243,9 +276,18 @@ def panel_pareja_parcial(request, token):
     return render(request, "torneo/panel_pareja_parcial.html", ctx)
 
 
-def solicitar_inicio(request, token):
+def solicitar_inicio(request, token, partida_id=None):
     pareja = get_object_or_404(Pareja, token=token)
-    partida = _get_partida_actual(pareja)
+
+    if partida_id:
+        partida = get_object_or_404(
+            Partida,
+            pk=partida_id,
+        )
+        if partida.pareja_1 != pareja and partida.pareja_2 != pareja:
+            raise Http404
+    else:
+        partida = _get_partida_actual(pareja)
 
     if not partida or partida.estado != Partida.Estado.PENDIENTE:
         return redirect("panel_pareja", token=token)
@@ -270,6 +312,13 @@ def subir_juego(request, token):
         return redirect("panel_pareja", token=token)
 
     if request.method == "POST":
+        # Protección: no crear juego si ya hay uno pendiente de confirmar
+        hay_pendiente = partida.juegos.filter(
+            estado=Juego.Estado.PENDIENTE_CONFIRMACION
+        ).exists()
+        if hay_pendiente:
+            return redirect("panel_pareja", token=token)
+
         ganador_num = request.POST.get("ganador", "")
         objetivo = partida.piedras_objetivo
 
@@ -279,16 +328,10 @@ def subir_juego(request, token):
             piedras_perdedor = -1
 
         if ganador_num not in ("1", "2"):
-            return render(request, "torneo/subir_juego.html", {
-                "pareja": pareja, "partida": partida,
-                "error": "Selecciona quien ha ganado.",
-            })
+            return redirect("panel_pareja", token=token)
 
         if piedras_perdedor < 0 or piedras_perdedor >= objetivo:
-            return render(request, "torneo/subir_juego.html", {
-                "pareja": pareja, "partida": partida,
-                "error": f"Las piedras del perdedor deben estar entre 0 y {objetivo - 1}.",
-            })
+            return redirect("panel_pareja", token=token)
 
         if ganador_num == "1":
             ganador = partida.pareja_1

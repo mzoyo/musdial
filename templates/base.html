@@ -16,6 +16,13 @@
     <style>
         * { font-family: 'Space Grotesk', system-ui, sans-serif; }
 
+        /* Botón deshabilitado genérico */
+        .btn[disabled], .btn:disabled {
+            opacity: 0.3 !important;
+            cursor: not-allowed !important;
+            pointer-events: none !important;
+        }
+
         /* Colores optimizados para cada tema */
         [data-theme="forest"] .score-win { color: #4ade80; }
         [data-theme="forest"] .score-lose { color: #f87171; }
@@ -28,6 +35,14 @@
         [data-theme="forest"] .status-waiting-bg { border-color: rgba(251,191,36,0.4); }
         [data-theme="forest"] .confirm-score-win { color: #4ade80; }
         [data-theme="forest"] .confirm-score-muted { color: rgba(255,255,255,0.35); }
+        [data-theme="forest"] .btn-resultado-win { color: #4ade80; border-color: #4ade80; }
+        [data-theme="forest"] .btn-resultado-win:hover { color: #4ade80; border-color: #4ade80; background: rgba(74,222,128,0.15); }
+        [data-theme="forest"] .btn-resultado-win.activo { background: #4ade80; color: #1a1a2e; border-color: #4ade80; }
+        [data-theme="forest"] .btn-resultado-win.activo:hover { background: #4ade80; color: #1a1a2e; }
+        [data-theme="forest"] .btn-resultado-lose { color: #f87171; border-color: #f87171; }
+        [data-theme="forest"] .btn-resultado-lose:hover { color: #f87171; border-color: #f87171; background: rgba(248,113,113,0.15); }
+        [data-theme="forest"] .btn-resultado-lose.activo { background: #f87171; color: #1a1a2e; border-color: #f87171; }
+        [data-theme="forest"] .btn-resultado-lose.activo:hover { background: #f87171; color: #1a1a2e; }
 
         [data-theme="lemonade"] .score-win { color: #4d7c0f; }
         [data-theme="lemonade"] .score-lose { color: #b91c1c; }
@@ -40,6 +55,14 @@
         [data-theme="lemonade"] .status-waiting-bg { border-color: #a16207; }
         [data-theme="lemonade"] .confirm-score-win { color: #4d7c0f; }
         [data-theme="lemonade"] .confirm-score-muted { color: rgba(0,0,0,0.25); }
+        [data-theme="lemonade"] .btn-resultado-win { color: #4d7c0f; border-color: #4d7c0f; }
+        [data-theme="lemonade"] .btn-resultado-win:hover { color: #4d7c0f; border-color: #4d7c0f; background: rgba(77,124,15,0.1); }
+        [data-theme="lemonade"] .btn-resultado-win.activo { background: #4d7c0f; color: #fff; border-color: #4d7c0f; }
+        [data-theme="lemonade"] .btn-resultado-win.activo:hover { background: #4d7c0f; color: #fff; }
+        [data-theme="lemonade"] .btn-resultado-lose { color: #b91c1c; border-color: #b91c1c; }
+        [data-theme="lemonade"] .btn-resultado-lose:hover { color: #b91c1c; border-color: #b91c1c; background: rgba(185,28,28,0.08); }
+        [data-theme="lemonade"] .btn-resultado-lose.activo { background: #b91c1c; color: #fff; border-color: #b91c1c; }
+        [data-theme="lemonade"] .btn-resultado-lose.activo:hover { background: #b91c1c; color: #fff; }
     </style>
     <script>
         (function() {

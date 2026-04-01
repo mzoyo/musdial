@@ -17,12 +17,18 @@
         {% endif %}
     </div>
 
-    <!-- Seccion activa: se actualiza sola cada 5 segundos -->
+    <!-- Seccion activa: se actualiza sola cada 3 segundos -->
     <div id="zona-activa" class="space-y-6">
         {% include "torneo/panel_pareja_parcial.html" %}
     </div>
 
     <script>
+    var musdialEditando = false;
+    var musdialSeleccion = null;
+
+    // Polling: sigue funcionando aunque estés editando,
+    // pero si llega algo importante (confirmación pendiente, partida finalizada)
+    // interrumpe y actualiza
     (function() {
         var zona = document.getElementById('zona-activa');
         var url = '{% url "panel_pareja_parcial" pareja.token %}';
@@ -30,18 +36,105 @@
         var estabaFinalizada = ultimo.indexOf('partida-finalizada') !== -1;
         setInterval(function() {
             fetch(url).then(function(r) { return r.text(); }).then(function(html) {
-                if (html !== ultimo) {
-                    var ahoraFinalizada = html.indexOf('partida-finalizada') !== -1;
-                    if (!estabaFinalizada && ahoraFinalizada) {
-                        location.reload();
-                        return;
-                    }
-                    ultimo = html;
-                    zona.innerHTML = html;
+                if (html === ultimo) return;
+
+                var ahoraFinalizada = html.indexOf('partida-finalizada') !== -1;
+                if (!estabaFinalizada && ahoraFinalizada) {
+                    location.reload();
+                    return;
                 }
+
+                // Si llega una confirmación pendiente o el estado cambió, actualizar siempre
+                var tienePendiente = html.indexOf('Pendiente de confirmar') !== -1;
+                var teniaFormulario = ultimo.indexOf('subir-juego-zona') !== -1;
+                var tieneFormulario = html.indexOf('subir-juego-zona') !== -1;
+
+                if (musdialEditando && !tienePendiente && tieneFormulario) {
+                    // Estoy escribiendo y no hay nada urgente: no actualizar
+                    ultimo = html;
+                    return;
+                }
+
+                // Actualizar
+                musdialEditando = false;
+                musdialSeleccion = null;
+                ultimo = html;
+                zona.innerHTML = html;
+                inicializarSubirJuego();
             });
         }, 3000);
     })();
+
+    function inicializarSubirJuego() {
+        var zona = document.getElementById('subir-juego-zona');
+        if (!zona) return;
+
+        var ganadorLocal = zona.dataset.ganadorLocal;
+        var ganadorRival = zona.dataset.ganadorRival;
+        var maxPiedras = parseInt(zona.dataset.maxPiedras);
+        var actionUrl = zona.dataset.action;
+        var csrf = zona.dataset.csrf;
+
+        var btnG = document.getElementById('btn-ganado');
+        var btnP = document.getElementById('btn-perdido');
+        var form = document.getElementById('form-subir');
+        var ganadorVal = document.getElementById('ganador-val');
+        var piedrasVal = document.getElementById('piedras-val');
+        var csrfVal = document.getElementById('csrf-val');
+        var piedrasInput = document.getElementById('piedras-input');
+        var piedrasLabel = document.getElementById('piedras-label');
+        var btnSubir = document.getElementById('btn-subir');
+
+        if (!btnG || !form) return;
+
+        form.action = actionUrl;
+        csrfVal.value = csrf;
+        piedrasInput.max = maxPiedras;
+
+        function actualizar() {
+            btnG.classList.toggle('activo', musdialSeleccion === 'ganado');
+            btnP.classList.toggle('activo', musdialSeleccion === 'perdido');
+        }
+
+        function toggle(tipo) {
+            if (musdialSeleccion === tipo) {
+                musdialSeleccion = null;
+                musdialEditando = false;
+                form.classList.add('hidden');
+                actualizar();
+                return;
+            }
+            musdialSeleccion = tipo;
+            musdialEditando = true;
+            form.classList.remove('hidden');
+            ganadorVal.value = tipo === 'ganado' ? ganadorLocal : ganadorRival;
+            piedrasLabel.textContent = tipo === 'ganado'
+                ? 'Piedras del rival al perder el juego (0-' + maxPiedras + ')'
+                : 'Tus piedras al perder el juego (0-' + maxPiedras + ')';
+            piedrasInput.value = '';
+            btnSubir.disabled = true;
+            actualizar();
+            piedrasInput.focus();
+        }
+
+        btnG.onclick = function() { toggle('ganado'); };
+        btnP.onclick = function() { toggle('perdido'); };
+
+        piedrasInput.oninput = function() {
+            var v = parseInt(piedrasInput.value);
+            var ok = !isNaN(v) && v >= 0 && v <= maxPiedras;
+            btnSubir.disabled = !ok;
+            if (ok) piedrasVal.value = v;
+        };
+
+        form.onsubmit = function() {
+            piedrasVal.value = parseInt(piedrasInput.value);
+            btnSubir.disabled = true;
+            btnSubir.textContent = 'Enviando...';
+        };
+    }
+
+    inicializarSubirJuego();
     </script>
 
     <!-- Historial -->

@@ -17,4 +17,6 @@ urlpatterns = [
     path("grupos/octavos/", views_org.generar_octavos, name="org_generar_octavos"),
     path("metricas/", views_org.metricas, name="org_metricas"),
     path("partidas-libres/", views_org.partidas_libres, name="org_partidas_libres"),
+    path("partidas-libres/<int:pk>/borrar/", views_org.borrar_libre, name="org_borrar_libre"),
+    path("partidas-libres/borrar-todas/", views_org.borrar_todas_libres, name="org_borrar_libres"),
 ]

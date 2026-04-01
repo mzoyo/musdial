@@ -91,7 +91,7 @@ CRUCES = {
 
 
 def _parse_date(date_str):
-    return make_aware(datetime.strptime(date_str + " 12:00", "%Y-%m-%d %H:%M"))
+    return make_aware(datetime.strptime(date_str + " 00:00", "%Y-%m-%d %H:%M"))
 
 
 def actualizar_estados():

@@ -38,15 +38,17 @@
 </div>
 {% endif %}
 
-<!-- Partida actual -->
+<!-- Partida en curso -->
 {% if partida_actual %}
 <div class="card bg-base-100 shadow">
     <div class="card-body">
         <div class="flex items-center justify-between mb-3">
-            <h2 class="card-title text-sm">Tu partida</h2>
-            {% if not partida_actual.es_amistoso %}
+            <h2 class="card-title text-sm">
+                {% if partida_actual.estado == "finalizada" %}Ultima partida{% else %}Partida en curso{% endif %}
+            </h2>
+            {% if not partida_actual.es_amistoso and partida_actual.ronda %}
             <div class="badge badge-ghost badge-sm">{{ partida_actual.ronda }}{% if partida_actual.ronda.fecha_limite %} &middot; Hasta {{ partida_actual.ronda.fecha_limite|date:"d/m" }}{% endif %}</div>
-            {% else %}
+            {% elif partida_actual.es_amistoso %}
             <div class="badge badge-ghost badge-sm">Amistoso &middot; {{ partida_actual.piedras_objetivo }}p &middot; {{ partida_actual.juegos_para_ganar }}j</div>
             {% endif %}
         </div>
@@ -78,7 +80,7 @@
             </div>
         </div>
 
-        <!-- Detalle de juegos jugados (tu piedras siempre a la izquierda) -->
+        <!-- Detalle de juegos jugados -->
         {% if juegos_partida %}
         <div class="space-y-1 mb-4">
             {% for juego in juegos_partida %}
@@ -118,9 +120,31 @@
             </div>
             {% elif pendientes %}
             {% else %}
-            <a href="{% url 'subir_juego' pareja.token %}" class="btn btn-primary btn-block btn-lg">
-                Subir juego
-            </a>
+            <!-- Subir juego inline -->
+            <div id="subir-juego-zona"
+                 data-ganador-local="{% if es_p1 %}1{% else %}2{% endif %}"
+                 data-ganador-rival="{% if es_p1 %}2{% else %}1{% endif %}"
+                 data-max-piedras="{{ partida_actual.piedras_objetivo|add:"-1" }}"
+                 data-action="{% url 'subir_juego' pareja.token %}"
+                 data-csrf="{{ csrf_token }}">
+                <div class="flex gap-3">
+                    <button type="button" class="btn btn-block btn-lg flex-1 btn-resultado-win" id="btn-ganado">Ganado</button>
+                    <button type="button" class="btn btn-block btn-lg flex-1 btn-resultado-lose" id="btn-perdido">Perdido</button>
+                </div>
+                <form method="post" id="form-subir" class="hidden mt-4 space-y-3">
+                    <input type="hidden" name="csrfmiddlewaretoken" id="csrf-val" value="">
+                    <input type="hidden" name="ganador" id="ganador-val" value="">
+                    <input type="hidden" name="piedras_perdedor" id="piedras-val" value="">
+                    <p class="text-sm text-center text-base-content/70" id="piedras-label"></p>
+                    <input type="number" id="piedras-input" min="0" required
+                           placeholder="0"
+                           class="input input-bordered input-lg w-full text-center text-3xl font-bold tabular-nums"
+                           inputmode="numeric">
+                    <button type="submit" id="btn-subir" class="btn btn-block btn-lg btn-resultado-win activo" disabled>
+                        Subir juego
+                    </button>
+                </form>
+            </div>
             {% endif %}
 
         {% elif partida_actual.inicio_solicitado_por == pareja %}
@@ -138,7 +162,7 @@
                 <span class="loading loading-dots loading-xs text-primary"></span>
                 <span class="text-sm font-semibold text-primary">Tu rival quiere empezar la partida</span>
             </div>
-            <form method="post" action="{% url 'solicitar_inicio' pareja.token %}">
+            <form method="post" action="{% url 'solicitar_inicio_partida' pareja.token partida_actual.pk %}">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-primary btn-block btn-lg">
                     Confirmar inicio
@@ -147,7 +171,7 @@
         </div>
 
         {% else %}
-        <form method="post" action="{% url 'solicitar_inicio' pareja.token %}">
+        <form method="post" action="{% url 'solicitar_inicio_partida' pareja.token partida_actual.pk %}">
             {% csrf_token %}
             <button type="submit" class="btn btn-primary btn-block btn-lg">
                 Empezar partida
@@ -157,12 +181,61 @@
         {% endif %}
     </div>
 </div>
+{% endif %}
 
-{% else %}
+<!-- Partidas disponibles (jornada abierta, se pueden empezar) -->
+{% if partidas_disponibles and not partida_actual or partidas_disponibles and partida_actual.estado == "finalizada" %}
+<div class="card bg-base-100 shadow">
+    <div class="card-body py-4">
+        <h2 class="card-title text-sm uppercase tracking-wider text-base-content/50">Partidas por jugar</h2>
+        <div class="space-y-2 mt-2">
+        {% for p in partidas_disponibles %}
+        <div class="flex items-center justify-between py-3 px-3 rounded-lg bg-base-200">
+            <div>
+                <p class="font-bold text-sm">
+                    vs {% if p.pareja_1 == pareja %}{{ p.pareja_2 }}{% else %}{{ p.pareja_1 }}{% endif %}
+                </p>
+                <p class="text-xs text-base-content/50">{{ p.ronda }}{% if p.ronda.fecha_limite %} &middot; Hasta {{ p.ronda.fecha_limite|date:"d/m" }}{% endif %}</p>
+            </div>
+            <form method="post" action="{% url 'solicitar_inicio_partida' pareja.token p.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary btn-sm">Empezar</button>
+            </form>
+        </div>
+        {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Partidas futuras (jornada aún no abierta) -->
+{% if partidas_futuras %}
+<div class="card bg-base-100 shadow">
+    <div class="card-body py-4">
+        <h2 class="card-title text-sm uppercase tracking-wider text-base-content/50">Proximas partidas</h2>
+        <div class="space-y-2 mt-2">
+        {% for p in partidas_futuras %}
+        <div class="flex items-center justify-between py-3 px-3 rounded-lg bg-base-200/50">
+            <div>
+                <p class="font-bold text-sm">
+                    vs {% if p.pareja_1 == pareja %}{{ p.pareja_2 }}{% else %}{{ p.pareja_1 }}{% endif %}
+                </p>
+                <p class="text-xs text-base-content/50">{{ p.ronda }}{% if p.ronda.fecha_inicio %} &middot; Desde {{ p.ronda.fecha_inicio|date:"d/m" }}{% endif %}</p>
+            </div>
+            <div class="badge badge-ghost badge-sm">Proximamente</div>
+        </div>
+        {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Sin nada pendiente -->
+{% if not partida_actual and not partidas_disponibles and not partidas_futuras %}
 <div class="card bg-base-100 shadow">
     <div class="card-body items-center text-center py-10">
-        <p class="text-lg font-bold text-base-content/60">Sin partida en curso</p>
-        <p class="text-sm text-base-content/50 max-w-xs">Cuando se publiquen los cruces de la siguiente jornada, aqui veras tu partida y tu rival</p>
+        <p class="text-lg font-bold text-base-content/60">Sin partidas pendientes</p>
+        <p class="text-sm text-base-content/50 max-w-xs">Has completado todas tus partidas. Consulta la clasificacion para ver como va tu grupo.</p>
     </div>
 </div>
 {% endif %}

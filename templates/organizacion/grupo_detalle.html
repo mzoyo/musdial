@@ -46,8 +46,9 @@
     <h2 class="font-bold text-sm text-base-content/50 uppercase tracking-wider px-1">Partidas</h2>
     {% for partida in partidas %}
     <div class="card bg-base-100 shadow">
-        <div class="card-body py-3 flex-row items-center gap-4">
-            <div class="shrink-0">
+        <div class="card-body py-3 px-4">
+            <div class="flex items-start gap-3">
+            <div class="shrink-0 mt-1">
                 {% if partida.estado == "finalizada" %}
                 <div class="badge badge-success badge-xs"></div>
                 {% elif partida.estado == "en_curso" %}
@@ -62,7 +63,7 @@
                     <span class="text-base-content/30 mx-1">vs</span>
                     <span class="font-bold {% if partida.ganador == partida.pareja_2 %}text-primary{% else %}text-base-content/50{% endif %}">{{ partida.pareja_2 }}</span>
                 </p>
-                <div class="flex items-center gap-2 mt-1">
+                <div class="flex flex-wrap items-center gap-1 mt-1">
                     {% if partida.estado == "finalizada" %}
                     <div class="badge badge-success badge-sm">{{ partida.marcador }}</div>
                     {% elif partida.estado == "en_curso" %}
@@ -74,9 +75,6 @@
                     {% endif %}
                 </div>
             </div>
-            <div class="shrink-0 text-right space-y-1">
-                <a href="/pareja/{{ partida.pareja_1.token }}/" class="link link-primary text-[10px] block">{{ partida.pareja_1 }}</a>
-                <a href="/pareja/{{ partida.pareja_2.token }}/" class="link link-primary text-[10px] block">{{ partida.pareja_2 }}</a>
             </div>
         </div>
     </div>
