@@ -304,6 +304,20 @@ def solicitar_inicio(request, token, partida_id=None):
     return redirect("panel_pareja", token=token)
 
 
+def cancelar_inicio(request, token, partida_id):
+    pareja = get_object_or_404(Pareja, token=token)
+    partida = get_object_or_404(Partida, pk=partida_id)
+
+    if partida.pareja_1 != pareja and partida.pareja_2 != pareja:
+        raise Http404
+
+    if request.method == "POST" and partida.estado == Partida.Estado.PENDIENTE and partida.inicio_solicitado_por == pareja:
+        partida.inicio_solicitado_por = None
+        partida.save()
+
+    return redirect("panel_pareja", token=token)
+
+
 def subir_juego(request, token):
     pareja = get_object_or_404(Pareja, token=token)
     partida = _get_partida_actual(pareja)

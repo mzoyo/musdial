@@ -14,6 +14,7 @@ urlpatterns = [
     path("pareja/<str:token>/estado/", views.panel_pareja_parcial, name="panel_pareja_parcial"),
     path("pareja/<str:token>/iniciar/", views.solicitar_inicio, name="solicitar_inicio"),
     path("pareja/<str:token>/iniciar/<int:partida_id>/", views.solicitar_inicio, name="solicitar_inicio_partida"),
+    path("pareja/<str:token>/cancelar-inicio/<int:partida_id>/", views.cancelar_inicio, name="cancelar_inicio"),
     path("pareja/<str:token>/subir/", views.subir_juego, name="subir_juego"),
     path(
         "pareja/<str:token>/confirmar/<int:juego_id>/",

@@ -154,6 +154,10 @@
                 <span class="text-sm font-semibold status-waiting">Esperando a que tu rival confirme el inicio</span>
             </div>
             <p class="text-xs text-base-content/70">Tu rival debe pulsar "Empezar partida" desde su panel</p>
+            <form method="post" action="{% url 'cancelar_inicio' pareja.token partida_actual.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-resultado-lose">Cancelar</button>
+            </form>
         </div>
 
         {% elif partida_actual.inicio_solicitado_por is not None %}
