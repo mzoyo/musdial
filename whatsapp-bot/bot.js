@@ -1,13 +1,17 @@
 import makeWASocket, { useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, makeCacheableSignalKeyStore } from 'baileys';
 import express from 'express';
 import qrcode from 'qrcode-terminal';
+import { readFileSync, writeFileSync } from 'fs';
 
 const app = express();
 app.use(express.json());
 
 let sock = null;
 let connected = false;
-let GROUP_ID = process.env.WHATSAPP_GROUP_ID || '';
+
+// Cargar grupo guardado
+let GROUP_ID = '';
+try { GROUP_ID = readFileSync('./group_id.txt', 'utf8').trim(); } catch(e) {}
 
 const logger = {
     info: () => {}, error: () => {}, warn: () => {},
@@ -77,7 +81,8 @@ app.get('/groups', async (req, res) => {
 
 app.post('/set-group', (req, res) => {
     GROUP_ID = req.body.groupId;
-    console.log('[BOT] Grupo configurado:', GROUP_ID);
+    writeFileSync('./group_id.txt', GROUP_ID);
+    console.log('[BOT] Grupo configurado y guardado:', GROUP_ID);
     res.json({ ok: true, groupId: GROUP_ID });
 });
 
