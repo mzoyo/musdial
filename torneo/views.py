@@ -5,6 +5,7 @@ from django.utils import timezone
 
 from .grupos import actualizar_estados, clasificacion_grupo, obtener_clasificados, obtener_mejor_cuarto
 from .models import Grupo, Juego, Pareja, Partida, Ronda
+from . import whatsapp
 
 
 def crear_partida_libre(request):
@@ -300,6 +301,8 @@ def solicitar_inicio(request, token, partida_id=None):
             partida.estado = Partida.Estado.EN_CURSO
             partida.fecha_inicio = timezone.now()
             partida.save()
+            if not partida.es_amistoso:
+                whatsapp.notificar_inicio_partida(partida)
 
     return redirect("panel_pareja", token=token)
 
@@ -387,10 +390,14 @@ def confirmar_juego(request, token, juego_id):
             juego.estado = Juego.Estado.CONFIRMADO
             juego.timestamp_confirmacion = timezone.now()
             juego.save()
+            if not juego.partida.es_amistoso:
+                whatsapp.notificar_juego(juego)
             juego.partida.comprobar_ganador()
             if juego.partida.estado == Partida.Estado.FINALIZADA:
                 juego.partida.fecha_fin = timezone.now()
                 juego.partida.save()
+                if not juego.partida.es_amistoso:
+                    whatsapp.notificar_fin_partida(juego.partida)
         elif accion == "rechazar":
             juego.estado = Juego.Estado.RECHAZADO
             juego.save()
