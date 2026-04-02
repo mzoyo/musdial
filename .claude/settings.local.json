@@ -42,7 +42,9 @@
       "Bash(npm --version)",
       "Bash(mkdir -p whatsapp-bot)",
       "Bash(npm init:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(zip -r whatsapp-bot-upload.zip whatsapp-bot/bot.js whatsapp-bot/package.json whatsapp-bot/package-lock.json whatsapp-bot/auth/)",
+      "Bash(ls *.md *.zip *.jpeg)"
     ]
   }
 }
